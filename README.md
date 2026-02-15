@@ -1,58 +1,65 @@
-🎨 Art Flow — O Seu Acervo de Arte com Toque de Mágica (e Código!)
-O Art Flow é uma plataforma web (SaaS) super visual e inteligente, criada com muito carinho para o mercado de belas artes gerenciar seus acervos.
+# 🎨 Art Flow — O Seu Acervo de Arte com Toque de Mágica (e Código!)
 
-O objetivo deste repositório é documentar toda a minha jornada de criação de um MVP funcional do zero, misturando minha paixão pela arte com as decisões técnicas de arquitetura e uso estratégico da Inteligência Artificial (Vibe Coding) como meu assistente de programação!
+![Colaboradores](https://img.shields.io/badge/colaboradores-bem_vindos-brightgreen?style=for-the-badge)
+![Help Wanted](https://img.shields.io/badge/help_wanted-issues-blue?style=for-the-badge)
 
-🎯 Para quem estou construindo?
-👩‍🎨 Artistas: Para organizar a produção, rastrear tiragens com facilidade e gerar Certificados de Autenticidade lindos (com QR Code!).
+![Status](https://img.shields.io/badge/status-MVP_funcional-orange?style=for-the-badge)
+![React](https://img.shields.io/badge/React-Frontend-blue?style=for-the-badge&logo=react)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.3-blue?style=for-the-badge&logo=tailwindcss)
+![Google Drive](https://img.shields.io/badge/Google_Drive-Storage-green?style=for-the-badge&logo=googledrive)
+![Google Sheets](https://img.shields.io/badge/Google_Sheets-Database-brightgreen?style=for-the-badge&logo=googlesheets)
+![Replit](https://img.shields.io/badge/Replit-Agent-black?style=for-the-badge&logo=replit)
+![Gemini](https://img.shields.io/badge/Gemini-IA_Copilota-purple?style=for-the-badge&logo=googlegemini)
 
-🏛️ Colecionadores: Para abraçar e proteger o patrimônio, guardando o histórico e a valorização de cada obra.
+O **Art Flow** é uma plataforma web (SaaS) super visual e inteligente, criada para o mercado de belas artes gerencia seus acervos. 
 
-🏢 Galerias: Para gerenciar o time de artistas, montar exposições incríveis e controlar as vendas sem estresse.
+O objetivo deste repositório é documentar a minha jornada criando um MVP funcional do zero, registrando meu processo de aprendizado, decisões técnicas e o uso estratégico da IA como copilota.
 
-✨ Tecnologia & Arquitetura
-O maior diferencial deste sistema é a arquitetura "Data Ownership" (Os dados são seus!).
-Para zerar os custos de servidor e dar 100% de privacidade ao usuário, o Art Flow faz uma ponte super inteligente com ferramentas que todo mundo já ama:
+## 🎯 Para quem estamos construindo?
 
-O Visual (Frontend): Construído com React e Tailwind CSS. Design minimalista, claro e elegante para que a verdadeira estrela brilhe: a imagem da obra de arte.
+* **👩‍🎨 Artistas:** Para organizar a produção, rastrear tiragens e gerar Certificados de Autenticidade (com QR Code).
+* **🏛️ Colecionadores:** Para preservar o patrimônio, histórico e valorização de cada obra.
+* **🏢 Galerias:** Para gerenciar o catálogo de artistas, exposições e vendas.
 
-O Cofre (Storage): Integração direta com o Google Drive! As fotos das obras e recibos vão direto para uma pastinha segura (/artflow) no Drive do próprio usuário.
+## ✨ Tecnologia & Arquitetura
 
-O Cérebro (Database): Integração com o Google Sheets! Todos os dados alimentam uma planilha de forma invisível e automática.
+O maior diferencial deste projeto é a arquitetura **"Data Ownership"** (Os dados são seus!). 
+Para zerar custos de servidor e garantir privacidade, o Art Flow usa:
 
-👩‍💻 O Meu Papel na Engrenagem
-Embora o código bruto ganhe vida com a ajuda das minhas IAs assistentes, a alma e a arquitetura do projeto são minhas. Aqui eu atuo como:
+* **Frontend:** React e Tailwind CSS para um design minimalista.
+* **Storage (O Cofre):** Integração com o Google Drive para salvar fotos das obras e certificados de forma segura.
+* **Database (O Cérebro):** Integração com o Google Sheets, alimentando dados de forma invisível.
 
-Engenheira de Prompts: Criando instruções cirúrgicas para a IA gerar componentes perfeitos.
+## 👩‍💻 O Meu Papel na Engrenagem
 
-Arquiteta de Soluções: Desenhando a integração inusitada com o ecossistema Google.
+Embora o código bruto seja gerado com apoio de IA, a liderança técnica do projeto é minha:
 
-Product Manager: Definindo o que entra no MVP, montando a tabela de preços (SaaS) e cuidando da experiência do usuário.
+* **Engenharia de Prompts:** Criando instruções estratégicas para a IA gerar componentes perfeitos.
+* **Arquitetura de Soluções:** Desenhando a integração com o ecossistema Google.
+* **Visão de Produto:** Definindo o que entra no MVP, perfis de usuários e modelo de negócios (SaaS).
 
-🗺️ Mapa de Aventuras (Roadmap)
-🎨 Fase 1: Estrutura Base e Landing Page de Vendas ✅ (Concluído!)
+## 🗺️ Nosso Mapa de Aventuras (Roadmap)
 
-🚪 Fase 2: Telas de Login, Cadastro e Escolha de Perfil 🔜 (Em andamento)
+* 🎨 **Fase 1:** Estrutura Base e Landing Page de Vendas ✅ *(Concluído!)*
+* 🚪 **Fase 2:** Telas de Login, Cadastro e Escolha de Perfil 🔜 *(Em andamento)*
+* 🔗 **Fase 3:** Integração Oauth com Google (Drive e Sheets) ⏳
+* 🖼️ **Fase 4:** Criação do Dashboard e envio de obras ⏳
+* 🖨️ **Fase 5:** Motor de geração de PDFs e Certificados ⏳
 
-🔗 Fase 3: A grande ponte: Integração Oauth com Google ⏳
+## 🤝 Quer fazer parte do Flow?
 
-🖼️ Fase 4: Criação do Dashboard Mágico e envio de obras ⏳
+Este projeto está em desenvolvimento e aceita contribuições:
+1. Faça um *Fork* do projeto.
+2. Crie uma branch para sua contribuição (`git checkout -b minha-feature`).
+3. Envie um *Pull Request* descrevendo suas mudanças.
 
-🖨️ Fase 5: Fábrica de PDFs (Catálogos e Certificados) ⏳
+> *"Não se trata apenas de escrever código, mas de reger a tecnologia para transformar grandes ideias em soluções reais."* 💫
 
-🤝 Quer fazer parte do Flow?
-Se você ama tecnologia, arte ou Vibe Coding, sinta-se em casa para contribuir:
+---
 
-Faça um Fork do projeto.
-
-Crie uma branch bem descritiva (git checkout -b minha-ideia-legal).
-
-Envie um Pull Request contando o que você melhorou!
-
-"Não se trata apenas de escrever código, mas de reger a tecnologia para transformar grandes ideias em soluções reais." 💫
-
-🔒 Licença e Direitos
-Criado com ☕ e dedicação por Luzbela Souza — Estudante de Engenharia de Software e Artista Visual.
-Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial.
-Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial. — Estudante de Engenharia de Software e Artista Visual.
-Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial.
+**🔒 Licença e Direitos**
+*Criado por Luzbela Souza — Estudante de Engenharia de Software e Artista Visual.*
+*Projeto de portfólio. Consulte as permissões antes de uso comercial.*
+**🔒 Licença e Direitos**
+*Criado por Luzbela Souza — Estudante de Engenharia de Software e Artista Visual.*
+*Projeto de portfólio. Consulte as permissões antes de uso comercial.*
