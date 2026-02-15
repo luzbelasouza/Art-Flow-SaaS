@@ -1,17 +1,17 @@
 🎨 Art Flow — O Seu Acervo de Arte com Toque de Mágica (e Código!)
-Diga adeus às planilhas cinzas e desorganizadas! O Art Flow é uma plataforma web (SaaS) super visual e inteligente, criada com muito carinho para revolucionar a forma como o mercado de belas artes gerencia seus acervos.
+O Art Flow é uma plataforma web (SaaS) super visual e inteligente, criada com muito carinho para o mercado de belas artes gerenciar seus acervos.
 
-O objetivo deste cantinho aqui no GitHub é ser o meu diário de bordo. Quero documentar toda a minha jornada criando um MVP funcional do zero, misturando minha paixão pela arte, minhas decisões técnicas de arquitetura e o uso estratégico da Inteligência Artificial (Vibe Coding) como minha dupla de programação!
+O objetivo deste repositório é documentar toda a minha jornada de criação de um MVP funcional do zero, misturando minha paixão pela arte com as decisões técnicas de arquitetura e uso estratégico da Inteligência Artificial (Vibe Coding) como meu assistente de programação!
 
-🎯 Para quem estamos construindo?
+🎯 Para quem estou construindo?
 👩‍🎨 Artistas: Para organizar a produção, rastrear tiragens com facilidade e gerar Certificados de Autenticidade lindos (com QR Code!).
 
 🏛️ Colecionadores: Para abraçar e proteger o patrimônio, guardando o histórico e a valorização de cada obra.
 
 🏢 Galerias: Para gerenciar o time de artistas, montar exposições incríveis e controlar as vendas sem estresse.
 
-✨ A Mágica por Trás (Tecnologia & Arquitetura)
-Nosso maior diferencial é a arquitetura "Data Ownership" (Os dados são seus!).
+✨ Tecnologia & Arquitetura
+O maior diferencial deste sistema é a arquitetura "Data Ownership" (Os dados são seus!).
 Para zerar os custos de servidor e dar 100% de privacidade ao usuário, o Art Flow faz uma ponte super inteligente com ferramentas que todo mundo já ama:
 
 O Visual (Frontend): Construído com React e Tailwind CSS. Design minimalista, claro e elegante para que a verdadeira estrela brilhe: a imagem da obra de arte.
@@ -29,7 +29,7 @@ Arquiteta de Soluções: Desenhando a integração inusitada com o ecossistema G
 
 Product Manager: Definindo o que entra no MVP, montando a tabela de preços (SaaS) e cuidando da experiência do usuário.
 
-🗺️ Nosso Mapa de Aventuras (Roadmap)
+🗺️ Mapa de Aventuras (Roadmap)
 🎨 Fase 1: Estrutura Base e Landing Page de Vendas ✅ (Concluído!)
 
 🚪 Fase 2: Telas de Login, Cadastro e Escolha de Perfil 🔜 (Em andamento)
@@ -41,7 +41,7 @@ Product Manager: Definindo o que entra no MVP, montando a tabela de preços (Saa
 🖨️ Fase 5: Fábrica de PDFs (Catálogos e Certificados) ⏳
 
 🤝 Quer fazer parte do Flow?
-Este é um projeto cheio de vida e em pleno desenvolvimento! Se você ama tecnologia, arte ou Vibe Coding, sinta-se em casa para contribuir:
+Se você ama tecnologia, arte ou Vibe Coding, sinta-se em casa para contribuir:
 
 Faça um Fork do projeto.
 
@@ -53,4 +53,6 @@ Envie um Pull Request contando o que você melhorou!
 
 🔒 Licença e Direitos
 Criado com ☕ e dedicação por Luzbela Souza — Estudante de Engenharia de Software e Artista Visual.
+Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial.
+Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial. — Estudante de Engenharia de Software e Artista Visual.
 Este projeto é parte de um portfólio acadêmico/profissional. Consulte as permissões antes de uso comercial.
