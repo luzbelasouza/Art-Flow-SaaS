@@ -2,8 +2,15 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -30,15 +37,47 @@ import {
   Settings,
   LogOut,
   Plus,
-  ImageOff,
   Upload,
+  Pencil,
 } from "lucide-react";
+
+import colheitaImg from "@assets/colheita_1771198582489.png";
+import camponesasImg from "@assets/camponesas_1771198582484.png";
+import respigadoresImg from "@assets/respigadores_1771198582490.png";
+import pissarroImg from "@assets/pissarro_1771198589992.png";
 
 const perfilLabels: Record<string, string> = {
   artista: "Artista",
   colecionador: "Colecionador",
   galeria: "Galeria",
 };
+
+const obras = [
+  {
+    id: 1,
+    titulo: "Colheita das Maçãs",
+    artista: "Camille Pissarro (1830–1903)",
+    tecnica: "Óleo sobre tela",
+    ano: 1888,
+    imagem: colheitaImg,
+  },
+  {
+    id: 2,
+    titulo: "Jovens Camponesas Descansando",
+    artista: "Camille Pissarro (1830–1903)",
+    tecnica: "Óleo sobre tela",
+    ano: 1882,
+    imagem: camponesasImg,
+  },
+  {
+    id: 3,
+    titulo: "Os Respigadores",
+    artista: "Camille Pissarro (1830–1903)",
+    tecnica: "Óleo sobre tela",
+    ano: 1889,
+    imagem: respigadoresImg,
+  },
+];
 
 const menuItems = [
   { title: "Meu Acervo", icon: Image, active: true },
@@ -78,7 +117,16 @@ function AppSidebar({ onSair }: { onSair: () => void }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 space-y-3">
+        <div className="flex items-center gap-3 px-2">
+          <Avatar className="h-8 w-8" data-testid="avatar-artista">
+            <AvatarImage src={pissarroImg} alt="Camille Pissarro" />
+            <AvatarFallback>CP</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium text-foreground truncate" data-testid="text-nome-artista">
+            Camille Pissarro
+          </span>
+        </div>
         <Button
           variant="ghost"
           className="w-full justify-start"
@@ -260,24 +308,52 @@ export default function Dashboard() {
             </Button>
           </header>
 
-          <main className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center max-w-md">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-md bg-muted">
-                <ImageOff className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h2
-                className="mt-6 text-xl font-semibold text-foreground"
-                data-testid="text-empty-title"
-              >
-                Seu acervo está vazio
-              </h2>
-              <p
-                className="mt-2 text-muted-foreground leading-relaxed"
-                data-testid="text-empty-subtitle"
-              >
-                Clique em &lsquo;+ Nova Obra&rsquo; para começar a catalogar
-                sua coleção.
-              </p>
+          <main className="flex-1 overflow-y-auto p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {obras.map((obra) => (
+                <Card key={obra.id} className="flex flex-col" data-testid={`card-obra-${obra.id}`}>
+                  <img
+                    src={obra.imagem}
+                    alt={obra.titulo}
+                    className="h-56 w-full object-cover rounded-t-md"
+                    data-testid={`img-obra-${obra.id}`}
+                  />
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3
+                      className="text-lg font-semibold text-foreground"
+                      data-testid={`text-titulo-obra-${obra.id}`}
+                    >
+                      {obra.titulo}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {obra.artista}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Técnica: {obra.tecnica} | Ano: {obra.ano}
+                    </p>
+
+                    <Separator className="my-4" />
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        data-testid={`button-editar-${obra.id}`}
+                      >
+                        <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        data-testid={`button-certificado-${obra.id}`}
+                      >
+                        <Award className="mr-1.5 h-3.5 w-3.5" />
+                        Certificado
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
           </main>
         </div>
