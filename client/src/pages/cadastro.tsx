@@ -21,6 +21,9 @@ export default function Cadastro() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (perfil) {
+      localStorage.setItem("artflow_profile", perfil);
+    }
     navigate("/dashboard");
   }
 

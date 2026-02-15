@@ -8,12 +8,18 @@ import { ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const [, navigate] = useLocation();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("teste@artflow.com");
   const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    navigate("/dashboard");
+    if (email === "teste@artflow.com" && senha === "123456") {
+      setErro("");
+      navigate("/dashboard");
+    } else {
+      setErro("Credenciais inválidas. Use teste@artflow.com / 123456");
+    }
   }
 
   return (
@@ -71,6 +77,15 @@ export default function Login() {
             >
               Entrar
             </Button>
+
+            {erro && (
+              <p
+                className="text-sm text-destructive text-center"
+                data-testid="text-erro-login"
+              >
+                {erro}
+              </p>
+            )}
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
