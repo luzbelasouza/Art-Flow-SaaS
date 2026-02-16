@@ -70,6 +70,13 @@ import {
   Crown,
   Sparkles,
   Star,
+  Building2,
+  Palette,
+  Tag,
+  Globe,
+  ShoppingBag,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -99,6 +106,16 @@ import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
 import PerfilEmissor, { carregarDadosEmissor, formatarLinhaEmissor } from "@/pages/perfil-emissor";
 import CatalogoPage, { CatalogoDocumento, type CatalogoItem } from "@/pages/catalogo";
+import {
+  OportunidadesUpsell,
+  ExpoPage,
+  OcupacaoPage,
+  EditalPage,
+  ConsignacaoPage,
+  FeirasPage,
+  MercadoPage,
+  CaixaEntradaPage,
+} from "@/pages/oportunidades";
 import capaCatalogoImg from "@assets/capa-catalogo_1771213791212.png";
 
 const colecoesObras: Record<number, string> = {
@@ -188,6 +205,7 @@ interface MenuItem {
 interface MenuGroup {
   label: string;
   items: MenuItem[];
+  premiumGroup?: boolean;
 }
 
 const menuArtista: MenuGroup[] = [
@@ -230,6 +248,19 @@ const menuArtista: MenuGroup[] = [
       { id: "certificados", title: "Certificados (COA)", icon: ShieldCheck },
     ],
   },
+  {
+    label: "Oportunidades",
+    premiumGroup: true,
+    items: [
+      { id: "oport-expo", title: "Expo", icon: Calendar, premium: true },
+      { id: "oport-ocupacao", title: "Ocupação", icon: Building2, premium: true },
+      { id: "oport-edital", title: "Edital", icon: Palette, premium: true },
+      { id: "oport-consignacao", title: "Consignação", icon: Tag, premium: true },
+      { id: "oport-feiras", title: "Feiras", icon: Globe, premium: true },
+      { id: "oport-mercado", title: "Mercado", icon: ShoppingBag, premium: true },
+      { id: "oport-caixa", title: "Caixa de Entrada", icon: MessageSquare, premium: true },
+    ],
+  },
 ];
 
 const menuColecionador: MenuGroup[] = [
@@ -259,6 +290,13 @@ const titulosPagina: Record<string, string> = {
   documentos: "Documentos",
   certificados: "Certificados (COA)",
   configuracoes: "Configurações",
+  "oport-expo": "Expo — Convocatórias",
+  "oport-ocupacao": "Ocupação & Residências",
+  "oport-edital": "Editais Culturais",
+  "oport-consignacao": "Consignação",
+  "oport-feiras": "Feiras de Arte",
+  "oport-mercado": "Mercado",
+  "oport-caixa": "Caixa de Entrada",
 };
 
 function UpsellModal({
@@ -349,9 +387,13 @@ function AppSidebar({
     ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
     : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
 
-  function handleNavegar(item: MenuItem) {
+  function handleNavegar(item: MenuItem, isOportunidadesGroup: boolean) {
     if (item.premium && !premium) {
-      onUpsell();
+      if (isOportunidadesGroup) {
+        onNavegar(item.id);
+      } else {
+        onUpsell();
+      }
     } else {
       onNavegar(item.id);
     }
@@ -371,19 +413,26 @@ function AppSidebar({
       <SidebarContent>
         {grupos.map((grupo) => (
           <SidebarGroup key={grupo.label}>
-            <SidebarGroupLabel>{grupo.label}</SidebarGroupLabel>
+            {grupo.premiumGroup ? (
+              <SidebarGroupLabel className="flex items-center gap-1.5" data-testid="label-oportunidades">
+                <Crown className="h-3 w-3" style={{ color: "#D4A843" }} />
+                <span style={{ color: "#D4A843" }}>{grupo.label}</span>
+              </SidebarGroupLabel>
+            ) : (
+              <SidebarGroupLabel>{grupo.label}</SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 {grupo.items.map((item) => (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       isActive={paginaAtiva === item.id}
-                      onClick={() => handleNavegar(item)}
+                      onClick={() => handleNavegar(item, !!grupo.premiumGroup)}
                       data-testid={`button-menu-${item.id}`}
                     >
                       <item.icon className="h-4 w-4" />
                       <span className="flex-1">{item.title}</span>
-                      {item.premium && !premium && (
+                      {item.premium && !premium && !grupo.premiumGroup && (
                         <span className="flex items-center gap-1 ml-auto" data-testid={`badge-premium-${item.id}`}>
                           <Lock className="h-3 w-3" style={{ color: "#D4A843" }} />
                           <span className="text-[9px] font-semibold tracking-wider" style={{ color: "#D4A843" }}>
@@ -1341,6 +1390,26 @@ export default function Dashboard() {
             onVerCatalogo={setCatalogoVisualizado}
           />
         );
+      case "oport-expo":
+      case "oport-ocupacao":
+      case "oport-edital":
+      case "oport-consignacao":
+      case "oport-feiras":
+      case "oport-mercado":
+      case "oport-caixa":
+        if (!premium) {
+          return <OportunidadesUpsell onAssinar={() => setUpsellAberto(true)} />;
+        }
+        switch (paginaAtiva) {
+          case "oport-expo": return <ExpoPage />;
+          case "oport-ocupacao": return <OcupacaoPage />;
+          case "oport-edital": return <EditalPage tecnicaArtista="Óleo sobre tela" />;
+          case "oport-consignacao": return <ConsignacaoPage />;
+          case "oport-feiras": return <FeirasPage />;
+          case "oport-mercado": return <MercadoPage obras={obras} />;
+          case "oport-caixa": return <CaixaEntradaPage />;
+          default: return <Placeholder page={paginaAtiva} />;
+        }
       default:
         return <Placeholder page={paginaAtiva} />;
     }
