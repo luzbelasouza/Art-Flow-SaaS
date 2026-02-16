@@ -12,7 +12,7 @@ export interface RegistroMapa {
   obraId: number;
   obraTitulo: string;
   obraImagem: string;
-  tipo: "emprestimo" | "doacao" | "leilao";
+  tipo: "emprestimo" | "doacao" | "leilao" | "representacao" | "armazenamento";
   localNome: string;
   localEndereco: string;
 }
@@ -51,6 +51,8 @@ const categorias = [
   { key: "emprestimo", label: "Empréstimo", cor: "#38bdf8" },
   { key: "doacao", label: "Doação", cor: "#f472b6" },
   { key: "leilao", label: "Leilão Público", cor: "#a78bfa" },
+  { key: "representacao", label: "Representação", cor: "#f97316" },
+  { key: "armazenamento", label: "Armazenamento", cor: "#6b7280" },
 ];
 
 function criarIcone(cor: string): L.DivIcon {
@@ -128,6 +130,8 @@ function registroToPin(reg: RegistroMapa): PinMapa {
     emprestimo: { categoria: "emprestimo", cor: "#38bdf8", status: "Empréstimo", desc: `Emprestada para: ${reg.localNome}` },
     doacao: { categoria: "doacao", cor: "#f472b6", status: "Doação", desc: `Doada para: ${reg.localNome}` },
     leilao: { categoria: "leilao", cor: "#a78bfa", status: "Em Leilão Público", desc: `Em Leilão Público – ${reg.localNome}` },
+    representacao: { categoria: "representacao", cor: "#f97316", status: "Em Representação", desc: `Representação em: ${reg.localNome}` },
+    armazenamento: { categoria: "armazenamento", cor: "#6b7280", status: "Armazenada", desc: `Armazenada em: ${reg.localNome}` },
   };
   const i = info[reg.tipo];
 

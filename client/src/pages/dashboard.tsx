@@ -107,7 +107,8 @@ import Bio from "@/pages/bio";
 import MapaObra, { type RegistroMapa } from "@/pages/mapa-obra";
 import Exposicoes, { exposicoesIniciais, type Exposicao } from "@/pages/exposicoes";
 import Vendas from "@/pages/vendas";
-import RepresentacaoPage, { representacoesIniciais, type Representacao } from "@/pages/representacao";
+import RepresentacaoPage, { representacoesIniciais, type Representacao, type RegistroRepresentacao } from "@/pages/representacao";
+import ArmazenamentoPage, { type RegistroArmazenamento } from "@/pages/armazenamento";
 import Contatos from "@/pages/contatos";
 import Localizacao, { locaisIniciais, type Local } from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
@@ -1677,6 +1678,8 @@ export default function Dashboard() {
 
   const [registrosEmprestimo, setRegistrosEmprestimo] = useState<RegistroEmprestimo[]>(registrosInicialEmprestimo);
   const [registrosLeilao, setRegistrosLeilao] = useState<RegistroLeilao[]>([]);
+  const [registrosRepresentacao, setRegistrosRepresentacao] = useState<RegistroRepresentacao[]>([]);
+  const [registrosArmazenamento, setRegistrosArmazenamento] = useState<RegistroArmazenamento[]>([]);
 
   const registrosMapa: RegistroMapa[] = [
     ...registrosEmprestimo.map((r) => ({
@@ -1694,6 +1697,24 @@ export default function Dashboard() {
       obraTitulo: r.obraTitulo,
       obraImagem: r.obraImagem,
       tipo: "leilao" as RegistroMapa["tipo"],
+      localNome: r.localDestino,
+      localEndereco: "",
+    })),
+    ...registrosRepresentacao.map((r) => ({
+      id: r.id,
+      obraId: r.obraId,
+      obraTitulo: r.obraTitulo,
+      obraImagem: r.obraImagem,
+      tipo: "representacao" as RegistroMapa["tipo"],
+      localNome: r.localDestino,
+      localEndereco: "",
+    })),
+    ...registrosArmazenamento.map((r) => ({
+      id: r.id,
+      obraId: r.obraId,
+      obraTitulo: r.obraTitulo,
+      obraImagem: r.obraImagem,
+      tipo: "armazenamento" as RegistroMapa["tipo"],
       localNome: r.localDestino,
       localEndereco: "",
     })),
@@ -1837,7 +1858,10 @@ export default function Dashboard() {
       case "vendas":
         return <Vendas />;
       case "representacao":
-        return <RepresentacaoPage onNovaRepresentacao={(nome) => setRepresentacoesLista((prev) => [...prev, nome])} />;
+        return <RepresentacaoPage obras={obras} locais={locaisCompletos} registrosIniciais={registrosRepresentacao} onRegistroSalvo={(obraId: number, localNome: string) => {
+          setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
+          toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
+        }} onRegistrosChange={(novos) => setRegistrosRepresentacao(novos)} />;
       case "contatos":
         return <Contatos />;
       case "localizacao":
@@ -1897,10 +1921,14 @@ export default function Dashboard() {
       case "venda-arte":
       case "leilao-artflow":
         return premium ? <Placeholder page={paginaAtiva} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "armazenamento":
+        return <ArmazenamentoPage obras={obras} locais={locaisCompletos} registrosIniciais={registrosArmazenamento} onRegistroSalvo={(obraId: number, localNome: string) => {
+          setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
+          toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
+        }} onRegistrosChange={(novos) => setRegistrosArmazenamento(novos)} />;
       case "tutores-online":
       case "cursos":
       case "suporte":
-      case "armazenamento":
         return <Placeholder page={paginaAtiva} />;
       case "oport-expo":
         return premium ? <ExpoPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
@@ -2030,7 +2058,12 @@ export default function Dashboard() {
           artista={artistas.find((a) => a.id === obraVisualizar.artistaId)}
           onClose={() => setObraVisualizar(null)}
           localizacaoOverride={localizacaoObras[obraVisualizar.id]}
-          statusOverride={registrosLeilao.some((r) => r.obraId === obraVisualizar.id) ? "Em Leilão" : undefined}
+          statusOverride={
+            registrosLeilao.some((r) => r.obraId === obraVisualizar.id) ? "Em Leilão" :
+            registrosRepresentacao.some((r) => r.obraId === obraVisualizar.id) ? "Em Representação" :
+            registrosArmazenamento.some((r) => r.obraId === obraVisualizar.id) ? "Armazenada" :
+            undefined
+          }
         />
       )}
     </SidebarProvider>

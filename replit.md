@@ -105,13 +105,18 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas. ERP
 ## Integrações entre Módulos
 - **Empréstimo/Doação → Mapa da Obra:** Pins Azul Claro (empréstimo) e Rosa (doação) com geolocalização automática
 - **Leilões → Mapa da Obra:** Pin Lilás com popup "Em Leilão Público – [leiloeiro]"
+- **Representação → Mapa da Obra:** Pin Laranja (#f97316) com popup "Representação em: [local]"
+- **Armazenamento → Mapa da Obra:** Pin Cinza (#6b7280) com popup "Armazenada em: [local]"
 - **Leilões → Ficha Técnica:** statusOverride "Em Leilão" no VisualizarObraModal
+- **Representação → Ficha Técnica:** statusOverride "Em Representação" no VisualizarObraModal
+- **Armazenamento → Ficha Técnica:** statusOverride "Armazenada" no VisualizarObraModal
 - **Leilões → Caixa de Entrada:** Notificação automática via localStorage (artflow_envios_realizados)
 - **Localização → Mapa da Obra:** Coordenadas mapeadas para geolocalização de destinos
 - **Produção → Nova Obra:** Associação a tiragem com numeração (1/20, P.A. 1/5)
 - **Catálogo → Leilões Públicos (Oportunidades):** Envio de catálogo para captação em leilões
 
 ## Alterações Recentes
+- 2026-02-16: Logística Unificada – Localização expandida (13 tipos: consignação, leilão, empréstimo, doação, armazenamento, exposição, feira, ocupação, representação, galeria, venda, depósito, outros). Representação e Armazenamento reescritas com padrão logístico (busca obra + dropdown local filtrado). Mapa da Obra com 8 categorias (+ Representação Laranja, Armazenamento Cinza). statusOverride na ficha técnica para representação e armazenamento. Automação de localização ao salvar registro.
 - 2026-02-16: Reestruturação da Sidebar - Nova hierarquia com 7 grupos (Perfil, Acervo, Logística, Comercial, Oportunidade, Mercado, Suporte). Exposições/Representação movidos de Perfil para Acervo. Consignação/Avaliação movidos de Oportunidades para Comercial (sem premium). Caixa de Entrada movida para Suporte (sem premium). Mapa da Obra sem premium. Novos placeholders: Armazenamento, Convocatória, Seja um Tutor, Venda sua Arte, Leilão Art Flow, Tutores Online, Cursos, Suporte. Novos grupos premium: Oportunidade e Mercado com coroa dourada.
 - 2026-02-16: Etapa 19 - Mapa da Obra geográfico real com Leaflet/OpenStreetMap, pins com coordenadas lat/lng reais, popups com miniatura/título/cidade/status, legenda interativa com filtros por categoria, FitBounds automático.
 - 2026-02-16: Etapa 18 - Reestruturação Leilões Públicos (Colecionador): módulo movido de Oportunidades para Acervo (abaixo de Empréstimo/Doação), nova página LeiloesPublicosAcervo seguindo padrão Empréstimo/Doação (busca de obras, tipo fixo "Leilão Público", dropdown de leiloeiros filtrado), Localização com tipo "leilao" e 2 seed leiloeiros (Bolsa de Arte SP, Soraia Cals RJ), Mapa da Obra com Pin Lilás para obras em leilão e popup "Em Leilão Público – [leiloeiro]", status automático "Em Leilão" na ficha técnica, notificação na Caixa de Entrada ao registrar

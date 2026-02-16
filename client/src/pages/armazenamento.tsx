@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Building2, MapPin, Plus, Search, Calendar } from "lucide-react";
+import { Archive, MapPin, Plus, Search, Calendar } from "lucide-react";
 
 interface Obra {
   id: number;
@@ -39,17 +39,7 @@ interface LocalInfo {
   detalhe: string;
 }
 
-export interface Representacao {
-  id: string;
-  nome: string;
-  tipo: string;
-  cidade: string;
-  pais: string;
-  contato: string;
-  status: "ativa" | "inativa";
-}
-
-export interface RegistroRepresentacao {
+export interface RegistroArmazenamento {
   id: string;
   obraId: number;
   obraTitulo: string;
@@ -59,60 +49,27 @@ export interface RegistroRepresentacao {
   data: string;
 }
 
-const representacoesIniciais: Representacao[] = [
-  {
-    id: "rep-1",
-    nome: "Galeria Graphitte",
-    tipo: "Galeria",
-    cidade: "São Paulo",
-    pais: "Brasil",
-    contato: "contato@graphitte.com.br",
-    status: "ativa",
-  },
-  {
-    id: "rep-2",
-    nome: "Saatchi Gallery",
-    tipo: "Galeria",
-    cidade: "Londres",
-    pais: "Reino Unido",
-    contato: "info@saatchigallery.com",
-    status: "ativa",
-  },
-  {
-    id: "rep-3",
-    nome: "Marchand Pierre Duval",
-    tipo: "Marchand",
-    cidade: "Paris",
-    pais: "França",
-    contato: "pierre@duval-art.fr",
-    status: "inativa",
-  },
-];
-
-export { representacoesIniciais };
-
-export default function RepresentacaoPage({
+export default function ArmazenamentoPage({
   obras,
   locais,
   onRegistroSalvo,
   registrosIniciais = [],
   onRegistrosChange,
 }: {
-  obras?: Obra[];
+  obras: Obra[];
   locais?: LocalInfo[];
   onRegistroSalvo?: (obraId: number, localNome: string) => void;
-  registrosIniciais?: RegistroRepresentacao[];
-  onRegistrosChange?: (registros: RegistroRepresentacao[]) => void;
-  onNovaRepresentacao?: (nome: string) => void;
+  registrosIniciais?: RegistroArmazenamento[];
+  onRegistrosChange?: (registros: RegistroArmazenamento[]) => void;
 }) {
-  const [registros, setRegistros] = useState<RegistroRepresentacao[]>(registrosIniciais);
+  const [registros, setRegistros] = useState<RegistroArmazenamento[]>(registrosIniciais);
   const [modalAberto, setModalAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null);
   const [localDestino, setLocalDestino] = useState("");
 
   const sugestoes = useMemo(() => {
-    if (!busca.trim() || !obras) return [];
+    if (!busca.trim()) return [];
     const termo = busca.toLowerCase();
     return obras.filter(
       (o) =>
@@ -123,7 +80,7 @@ export default function RepresentacaoPage({
 
   const locaisFiltrados = useMemo(() => {
     if (!locais) return [];
-    return locais.filter((l) => l.tipo === "representacao" || l.tipo === "galeria");
+    return locais.filter((l) => l.tipo === "armazenamento" || l.tipo === "deposito");
   }, [locais]);
 
   function handleSelecionarObra(obra: Obra) {
@@ -133,8 +90,8 @@ export default function RepresentacaoPage({
 
   function handleSalvar() {
     if (!obraSelecionada || !localDestino) return;
-    const novo: RegistroRepresentacao = {
-      id: `repr-${Date.now()}`,
+    const novo: RegistroArmazenamento = {
+      id: `armaz-${Date.now()}`,
       obraId: obraSelecionada.id,
       obraTitulo: obraSelecionada.titulo,
       obraInventarioId: obraSelecionada.inventarioId,
@@ -164,16 +121,16 @@ export default function RepresentacaoPage({
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
           <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold text-foreground" data-testid="text-titulo-representacao">
-              Representação
+            <Archive className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground" data-testid="text-titulo-armazenamento">
+              Armazenamento
             </h2>
             <Badge variant="secondary">{registros.length}</Badge>
           </div>
           <Button
             onClick={handleAbrir}
             style={{ backgroundColor: "#16a34a", borderColor: "#16a34a", color: "#fff" }}
-            data-testid="button-novo-registro-representacao"
+            data-testid="button-novo-registro-armazenamento"
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Registro
@@ -182,8 +139,8 @@ export default function RepresentacaoPage({
 
         {registros.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Building2 className="h-12 w-12 mb-3 opacity-30" />
-            <p className="text-sm" data-testid="text-representacao-vazio">Nenhum registro de representação.</p>
+            <Archive className="h-12 w-12 mb-3 opacity-30" />
+            <p className="text-sm" data-testid="text-armazenamento-vazio">Nenhum registro de armazenamento.</p>
             <p className="text-xs text-muted-foreground mt-1">Clique em "Novo Registro" para começar.</p>
           </div>
         ) : (
@@ -192,25 +149,25 @@ export default function RepresentacaoPage({
               <Card
                 key={reg.id}
                 className="p-5"
-                data-testid={`card-registro-repr-${reg.id}`}
+                data-testid={`card-registro-armaz-${reg.id}`}
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 bg-orange-500/10">
-                    <Building2 className="h-5 w-5 text-orange-500" />
+                  <div className="flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 bg-gray-500/10">
+                    <Archive className="h-5 w-5 text-gray-500" />
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-foreground" data-testid={`text-repr-titulo-${reg.id}`}>
+                      <h3 className="font-semibold text-foreground" data-testid={`text-armaz-titulo-${reg.id}`}>
                         {reg.obraTitulo}
                       </h3>
-                      <Badge style={{ backgroundColor: "rgba(249, 115, 22, 0.1)", color: "#f97316", borderColor: "rgba(249, 115, 22, 0.3)" }}>
-                        Em Representação
+                      <Badge style={{ backgroundColor: "rgba(107, 114, 128, 0.1)", color: "#6b7280", borderColor: "rgba(107, 114, 128, 0.3)" }}>
+                        Armazenada
                       </Badge>
                     </div>
                     <p className="text-xs font-mono text-muted-foreground">{reg.obraInventarioId}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <MapPin className="h-3 w-3 flex-shrink-0" />
-                      <span data-testid={`text-repr-destino-${reg.id}`}>{reg.localDestino}</span>
+                      <span data-testid={`text-armaz-destino-${reg.id}`}>{reg.localDestino}</span>
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Calendar className="h-3 w-3 flex-shrink-0" />
@@ -225,9 +182,9 @@ export default function RepresentacaoPage({
       </div>
 
       <Dialog open={modalAberto} onOpenChange={(v) => !v && setModalAberto(false)}>
-        <DialogContent className="sm:max-w-md" data-testid="modal-novo-registro-repr">
+        <DialogContent className="sm:max-w-md" data-testid="modal-novo-armazenamento">
           <DialogHeader>
-            <DialogTitle data-testid="text-modal-repr-title">Novo Registro – Representação</DialogTitle>
+            <DialogTitle data-testid="text-modal-armaz-title">Novo Registro – Armazenamento</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
@@ -244,17 +201,17 @@ export default function RepresentacaoPage({
                     }
                   }}
                   className="pl-10"
-                  data-testid="input-busca-obra-repr"
+                  data-testid="input-busca-obra-armaz"
                 />
               </div>
               {busca.trim() && !obraSelecionada && sugestoes.length > 0 && (
-                <div className="rounded-md border border-border bg-background shadow-sm max-h-48 overflow-y-auto" data-testid="lista-sugestoes-repr">
+                <div className="rounded-md border border-border bg-background shadow-sm max-h-48 overflow-y-auto" data-testid="lista-sugestoes-armaz">
                   {sugestoes.map((obra) => (
                     <button
                       key={obra.id}
                       className="w-full text-left px-3 py-2.5 text-sm hover-elevate flex items-center gap-3"
                       onClick={() => handleSelecionarObra(obra)}
-                      data-testid={`sugestao-repr-${obra.id}`}
+                      data-testid={`sugestao-armaz-${obra.id}`}
                     >
                       <img src={obra.imagem} alt={obra.titulo} className="h-8 w-8 rounded-sm object-cover flex-shrink-0" />
                       <div className="min-w-0">
@@ -269,7 +226,7 @@ export default function RepresentacaoPage({
                 <p className="text-xs text-muted-foreground mt-1">Nenhuma obra encontrada.</p>
               )}
               {obraSelecionada && (
-                <div className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2 mt-1" data-testid="obra-selecionada-repr">
+                <div className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2 mt-1" data-testid="obra-selecionada-armaz">
                   <img src={obraSelecionada.imagem} alt={obraSelecionada.titulo} className="h-10 w-10 rounded-sm object-cover flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{obraSelecionada.titulo}</p>
@@ -282,12 +239,12 @@ export default function RepresentacaoPage({
               <Label>Local de Destino</Label>
               {locaisFiltrados.length > 0 ? (
                 <Select value={localDestino} onValueChange={setLocalDestino}>
-                  <SelectTrigger data-testid="select-local-repr">
+                  <SelectTrigger data-testid="select-local-armaz">
                     <SelectValue placeholder="Selecione o local de destino" />
                   </SelectTrigger>
                   <SelectContent>
                     {locaisFiltrados.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.nome} data-testid={`option-local-repr-${loc.id}`}>
+                      <SelectItem key={loc.id} value={loc.nome} data-testid={`option-local-armaz-${loc.id}`}>
                         <span className="flex items-center gap-2">
                           <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                           {loc.nome}
@@ -297,15 +254,15 @@ export default function RepresentacaoPage({
                   </SelectContent>
                 </Select>
               ) : (
-                <p className="text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2.5" data-testid="text-sem-locais-repr">
-                  Nenhum local de representação ou galeria cadastrado. Adicione um na aba Localização.
+                <p className="text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2.5" data-testid="text-sem-locais-armaz">
+                  Nenhum local de armazenamento ou depósito cadastrado. Adicione um na aba Localização.
                 </p>
               )}
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="ghost" onClick={() => setModalAberto(false)} data-testid="button-cancelar-repr">Cancelar</Button>
-            <Button onClick={handleSalvar} disabled={!obraSelecionada || !localDestino} data-testid="button-salvar-repr">Salvar Registro</Button>
+            <Button variant="ghost" onClick={() => setModalAberto(false)} data-testid="button-cancelar-armaz">Cancelar</Button>
+            <Button onClick={handleSalvar} disabled={!obraSelecionada || !localDestino} data-testid="button-salvar-armaz">Salvar Registro</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

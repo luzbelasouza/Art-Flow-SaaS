@@ -24,7 +24,7 @@ interface Local {
   id: string;
   nome: string;
   endereco: string;
-  tipo: "feira" | "venda" | "galeria" | "deposito" | "emprestimo" | "doacao" | "leilao";
+  tipo: "feira" | "venda" | "galeria" | "deposito" | "emprestimo" | "doacao" | "leilao" | "consignacao" | "armazenamento" | "exposicao" | "ocupacao" | "representacao" | "outros";
   detalhe: string;
 }
 
@@ -109,6 +109,12 @@ const tipoLabels: Record<string, string> = {
   emprestimo: "Empréstimo",
   doacao: "Doação",
   leilao: "Leilão Público",
+  consignacao: "Consignação",
+  armazenamento: "Armazenamento",
+  exposicao: "Exposição",
+  ocupacao: "Ocupação",
+  representacao: "Representação",
+  outros: "Outros",
 };
 
 export { locaisIniciais };
@@ -169,8 +175,30 @@ export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?:
               data-testid={`card-local-${local.id}`}
             >
               <div className="flex items-start gap-4">
-                <div className={`flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 ${local.tipo === "feira" ? "bg-rose-500/10" : local.tipo === "galeria" ? "bg-blue-500/10" : local.tipo === "deposito" ? "bg-amber-500/10" : local.tipo === "emprestimo" ? "bg-indigo-500/10" : local.tipo === "doacao" ? "bg-purple-500/10" : local.tipo === "leilao" ? "bg-violet-500/10" : "bg-emerald-500/10"}`}>
-                  <MapPin className={`h-5 w-5 ${local.tipo === "feira" ? "text-rose-500" : local.tipo === "galeria" ? "text-blue-500" : local.tipo === "deposito" ? "text-amber-500" : local.tipo === "emprestimo" ? "text-indigo-500" : local.tipo === "doacao" ? "text-purple-500" : local.tipo === "leilao" ? "text-violet-500" : "text-emerald-600"}`} />
+                <div className={`flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 ${
+                  local.tipo === "feira" ? "bg-rose-500/10" :
+                  local.tipo === "galeria" || local.tipo === "representacao" ? "bg-orange-500/10" :
+                  local.tipo === "deposito" || local.tipo === "armazenamento" ? "bg-gray-500/10" :
+                  local.tipo === "emprestimo" ? "bg-sky-400/10" :
+                  local.tipo === "doacao" ? "bg-pink-400/10" :
+                  local.tipo === "leilao" ? "bg-violet-500/10" :
+                  local.tipo === "consignacao" ? "bg-amber-500/10" :
+                  local.tipo === "exposicao" ? "bg-rose-500/10" :
+                  local.tipo === "ocupacao" ? "bg-teal-500/10" :
+                  "bg-emerald-500/10"
+                }`}>
+                  <MapPin className={`h-5 w-5 ${
+                    local.tipo === "feira" ? "text-rose-500" :
+                    local.tipo === "galeria" || local.tipo === "representacao" ? "text-orange-500" :
+                    local.tipo === "deposito" || local.tipo === "armazenamento" ? "text-gray-500" :
+                    local.tipo === "emprestimo" ? "text-sky-400" :
+                    local.tipo === "doacao" ? "text-pink-400" :
+                    local.tipo === "leilao" ? "text-violet-500" :
+                    local.tipo === "consignacao" ? "text-amber-500" :
+                    local.tipo === "exposicao" ? "text-rose-500" :
+                    local.tipo === "ocupacao" ? "text-teal-500" :
+                    "text-emerald-600"
+                  }`} />
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -228,13 +256,19 @@ export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?:
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="galeria">Galeria</SelectItem>
-                  <SelectItem value="deposito">Depósito</SelectItem>
-                  <SelectItem value="feira">Feira</SelectItem>
-                  <SelectItem value="venda">Venda</SelectItem>
+                  <SelectItem value="consignacao">Consignação</SelectItem>
+                  <SelectItem value="leilao">Leilão Público</SelectItem>
                   <SelectItem value="emprestimo">Empréstimo</SelectItem>
                   <SelectItem value="doacao">Doação</SelectItem>
-                  <SelectItem value="leilao">Leilão Público</SelectItem>
+                  <SelectItem value="armazenamento">Armazenamento</SelectItem>
+                  <SelectItem value="exposicao">Exposição</SelectItem>
+                  <SelectItem value="feira">Feira</SelectItem>
+                  <SelectItem value="ocupacao">Ocupação</SelectItem>
+                  <SelectItem value="representacao">Representação</SelectItem>
+                  <SelectItem value="galeria">Galeria</SelectItem>
+                  <SelectItem value="venda">Venda</SelectItem>
+                  <SelectItem value="deposito">Depósito</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
