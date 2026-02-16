@@ -24,7 +24,7 @@ export interface RegistroMapa {
   obraId: number;
   obraTitulo: string;
   obraImagem: string;
-  tipo: "emprestimo" | "doacao";
+  tipo: "emprestimo" | "doacao" | "leilao";
   localNome: string;
   localEndereco: string;
 }
@@ -38,6 +38,8 @@ const coordenadasLocais: Record<string, { top: string; left: string; cidade: str
   "Coleção João Vicente": { top: "58%", left: "62%", cidade: "Rio de Janeiro" },
   "Escritório Angela Marques": { top: "56%", left: "54%", cidade: "São Paulo" },
   "Galeria Graphitte": { top: "57%", left: "51%", cidade: "São Paulo" },
+  "Bolsa de Arte de São Paulo": { top: "56%", left: "56%", cidade: "São Paulo" },
+  "Soraia Cals Escritório de Arte": { top: "59%", left: "64%", cidade: "Rio de Janeiro" },
 };
 
 const pinsEstaticos: Pin[] = [
@@ -82,28 +84,33 @@ const legenda = [
   { label: "Consignada", cor: "bg-amber-400" },
   { label: "Empréstimo", cor: "bg-sky-400" },
   { label: "Doação", cor: "bg-pink-400" },
+  { label: "Leilão Público", cor: "bg-violet-400" },
 ];
 
 function registroToPin(reg: RegistroMapa): Pin {
   const coords = coordenadasLocais[reg.localNome];
-  const isEmprestimo = reg.tipo === "emprestimo";
 
   const baseTop = coords ? coords.top : "50%";
   const baseLeft = coords ? coords.left : "50%";
   const cidade = coords ? coords.cidade : reg.localNome;
 
+  const corMap = {
+    emprestimo: { cor: "bg-sky-400", corBg: "bg-sky-400/20", status: "Empréstimo", desc: `Emprestada para: ${reg.localNome}` },
+    doacao: { cor: "bg-pink-400", corBg: "bg-pink-400/20", status: "Doação", desc: `Doada para: ${reg.localNome}` },
+    leilao: { cor: "bg-violet-400", corBg: "bg-violet-400/20", status: "Em Leilão Público", desc: `Status: Em Leilão Público – ${reg.localNome}` },
+  };
+  const info = corMap[reg.tipo];
+
   return {
     id: `reg-${reg.id}`,
     cidade,
-    status: isEmprestimo ? "Empréstimo" : "Doação",
-    cor: isEmprestimo ? "bg-sky-400" : "bg-pink-400",
-    corBg: isEmprestimo ? "bg-sky-400/20" : "bg-pink-400/20",
+    status: info.status,
+    cor: info.cor,
+    corBg: info.corBg,
     top: baseTop,
     left: baseLeft,
     imagem: reg.obraImagem,
-    descricao: isEmprestimo
-      ? `Emprestada para: ${reg.localNome}`
-      : `Doada para: ${reg.localNome}`,
+    descricao: info.desc,
   };
 }
 

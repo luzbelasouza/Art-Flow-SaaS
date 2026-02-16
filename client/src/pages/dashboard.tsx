@@ -79,6 +79,7 @@ import {
   MessageSquare,
   Zap,
   HandHeart,
+  Gavel,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -105,6 +106,7 @@ import Contatos from "@/pages/contatos";
 import Localizacao, { locaisIniciais, type Local } from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
 import EmprestimoDoacaoPage, { type Registro as RegistroEmprestimo } from "@/pages/emprestimo-doacao";
+import LeiloesPublicosAcervo, { type RegistroLeilao } from "@/pages/leiloes-acervo";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
@@ -284,11 +286,15 @@ function buildMenu(perfil: string): MenuGroup[] {
       if (producaoIdx >= 0) {
         base[acervoIdx].items[producaoIdx] = { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart };
       }
+      const emprestimoIdx = base[acervoIdx].items.findIndex((i) => i.id === "emprestimo-doacao");
+      if (emprestimoIdx >= 0) {
+        base[acervoIdx].items.splice(emprestimoIdx + 1, 0, { id: "leiloes-acervo", title: "Leilões Públicos", icon: Gavel });
+      }
     }
     const oportunidadesIdx = base.findIndex((g) => g.label === "Oportunidades");
     if (oportunidadesIdx !== -1) {
       base[oportunidadesIdx].items = base[oportunidadesIdx].items.filter(
-        (i) => i.id !== "oport-ocupacao" && i.id !== "oport-edital"
+        (i) => i.id !== "oport-ocupacao" && i.id !== "oport-edital" && i.id !== "oport-leiloes"
       );
     }
   }
@@ -307,6 +313,7 @@ const titulosPagina: Record<string, string> = {
   "catalogos-repo": "Catálogo",
   producao: "Produção e Tiragem",
   "emprestimo-doacao": "Empréstimo / Doação",
+  "leiloes-acervo": "Leilões Públicos",
   localizacao: "Localização",
   contatos: "Contatos",
   vendas: "Vendas",
@@ -510,11 +517,13 @@ function VisualizarObraModal({
   artista,
   onClose,
   localizacaoOverride,
+  statusOverride,
 }: {
   obra: Obra;
   artista?: Artista;
   onClose: () => void;
   localizacaoOverride?: string;
+  statusOverride?: string;
 }) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
   const colecao = colecoesObras[obra.id] || "—";
@@ -535,7 +544,7 @@ function VisualizarObraModal({
     "ID-M003": "Leblon, Rio de Janeiro",
   };
 
-  const statusObra = statusMap[obra.inventarioId] || "Acervo Pessoal";
+  const statusObra = statusOverride || statusMap[obra.inventarioId] || "Acervo Pessoal";
   const precoObra = precoMap[obra.inventarioId] || "Sob consulta";
   const locObra = localizacaoOverride || locMap[obra.inventarioId] || "—";
 
@@ -1653,16 +1662,28 @@ export default function Dashboard() {
   ] : [];
 
   const [registrosEmprestimo, setRegistrosEmprestimo] = useState<RegistroEmprestimo[]>(registrosInicialEmprestimo);
+  const [registrosLeilao, setRegistrosLeilao] = useState<RegistroLeilao[]>([]);
 
-  const registrosMapa: RegistroMapa[] = registrosEmprestimo.map((r) => ({
-    id: r.id,
-    obraId: r.obraId,
-    obraTitulo: r.obraTitulo,
-    obraImagem: r.obraImagem,
-    tipo: r.tipo,
-    localNome: r.localDestino,
-    localEndereco: "",
-  }));
+  const registrosMapa: RegistroMapa[] = [
+    ...registrosEmprestimo.map((r) => ({
+      id: r.id,
+      obraId: r.obraId,
+      obraTitulo: r.obraTitulo,
+      obraImagem: r.obraImagem,
+      tipo: r.tipo as RegistroMapa["tipo"],
+      localNome: r.localDestino,
+      localEndereco: "",
+    })),
+    ...registrosLeilao.map((r) => ({
+      id: r.id,
+      obraId: r.obraId,
+      obraTitulo: r.obraTitulo,
+      obraImagem: r.obraImagem,
+      tipo: "leilao" as RegistroMapa["tipo"],
+      localNome: r.localDestino,
+      localEndereco: "",
+    })),
+  ];
   const [tiragensLista, setTiragensLista] = useState<Tiragem[]>([...tiragensIniciais]);
   const [exposicoesLista, setExposicoesLista] = useState<string[]>(exposicoesIniciais.map((e) => e.nome));
   const [representacoesLista, setRepresentacoesLista] = useState<string[]>(representacoesIniciais.map((r) => r.nome));
@@ -1705,6 +1726,7 @@ export default function Dashboard() {
       setRegistrosEmprestimo([]);
       setLocalizacaoObras({} as Record<number, string>);
     }
+    setRegistrosLeilao([]);
   }, [perfil]);
 
   const isColecionador = perfil === "colecionador";
@@ -1818,6 +1840,11 @@ export default function Dashboard() {
           setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
           toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
         }} onRegistrosChange={(novos) => setRegistrosEmprestimo(novos)} />;
+      case "leiloes-acervo":
+        return <LeiloesPublicosAcervo obras={obras} locais={locaisCompletos} onRegistroSalvo={(obraId: number, localNome: string) => {
+          setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
+          toast({ title: "Status atualizado", description: `Obra enviada para leilão em "${localNome}". Status: Em Leilão.` });
+        }} onRegistrosChange={(novos) => setRegistrosLeilao(novos)} />;
       case "colecoes":
         return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
@@ -1984,6 +2011,7 @@ export default function Dashboard() {
           artista={artistas.find((a) => a.id === obraVisualizar.artistaId)}
           onClose={() => setObraVisualizar(null)}
           localizacaoOverride={localizacaoObras[obraVisualizar.id]}
+          statusOverride={registrosLeilao.some((r) => r.obraId === obraVisualizar.id) ? "Em Leilão" : undefined}
         />
       )}
     </SidebarProvider>
