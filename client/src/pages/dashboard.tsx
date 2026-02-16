@@ -115,7 +115,8 @@ import {
   EditalPage,
   ConsignacaoPage,
   FeirasPage,
-  MercadoPage,
+  AvaliacaoPage,
+  LeiloesPage,
   CaixaEntradaPage,
 } from "@/pages/oportunidades";
 import capaCatalogoImg from "@assets/capa-catalogo_1771213791212.png";
@@ -259,7 +260,8 @@ const menuArtista: MenuGroup[] = [
       { id: "oport-edital", title: "Edital", icon: Palette, premium: true },
       { id: "oport-consignacao", title: "Consignação", icon: Tag, premium: true },
       { id: "oport-feiras", title: "Feiras", icon: Globe, premium: true },
-      { id: "oport-mercado", title: "Mercado", icon: ShoppingBag, premium: true },
+      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag, premium: true },
+      { id: "oport-leiloes", title: "Leilões Públicos", icon: Zap, premium: true },
       { id: "oport-caixa", title: "Caixa de Entrada", icon: MessageSquare, premium: true },
     ],
   },
@@ -297,7 +299,8 @@ const titulosPagina: Record<string, string> = {
   "oport-edital": "Editais Culturais",
   "oport-consignacao": "Consignação",
   "oport-feiras": "Feiras de Arte",
-  "oport-mercado": "Mercado",
+  "oport-avaliacao": "Avaliação",
+  "oport-leiloes": "Leilões Públicos",
   "oport-caixa": "Caixa de Entrada",
 };
 
@@ -484,10 +487,147 @@ function AppSidebar({
   );
 }
 
+function VisualizarObraModal({
+  obra,
+  artista,
+  onClose,
+}: {
+  obra: Obra;
+  artista?: Artista;
+  onClose: () => void;
+}) {
+  const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
+  const colecao = colecoesObras[obra.id] || "—";
+
+  const statusMap: Record<string, string> = {
+    "ID-M001": "Acervo Pessoal",
+    "ID-M002": "Consignação",
+    "ID-M003": "Estoque",
+  };
+  const precoMap: Record<string, string> = {
+    "ID-M001": "R$ 45.000,00",
+    "ID-M002": "R$ 38.000,00",
+    "ID-M003": "R$ 52.000,00",
+  };
+  const locMap: Record<string, string> = {
+    "ID-M001": "Ateliê do Artista",
+    "ID-M002": "Galeria Graphitte, São Paulo",
+    "ID-M003": "Leblon, Rio de Janeiro",
+  };
+
+  const statusObra = statusMap[obra.inventarioId] || "Acervo Pessoal";
+  const precoObra = precoMap[obra.inventarioId] || "Sob consulta";
+  const locObra = locMap[obra.inventarioId] || "—";
+
+  function handleImprimir() {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Ficha Técnica — ${obra.titulo}</title>
+        <style>
+          @media print { @page { size: A4; margin: 20mm; } }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #D4A843; padding-bottom: 15px; }
+          .header h1 { font-size: 14px; letter-spacing: 3px; color: #D4A843; margin: 0; }
+          .img-container { text-align: center; margin: 20px 0; }
+          .img-container img { max-width: 100%; max-height: 400px; object-fit: contain; }
+          .titulo-obra { font-size: 22px; font-weight: 600; text-align: center; margin: 20px 0 5px; }
+          .artista { text-align: center; color: #666; font-size: 14px; margin-bottom: 25px; }
+          table { width: 100%; border-collapse: collapse; }
+          td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eee; }
+          td:first-child { font-weight: 600; color: #555; width: 160px; }
+        </style>
+      </head>
+      <body>
+        <div class="header"><h1>ART FLOW — FICHA TÉCNICA</h1></div>
+        <div class="img-container"><img src="${obra.imagem}" alt="${obra.titulo}" /></div>
+        <div class="titulo-obra">${obra.titulo}</div>
+        <div class="artista">${artistaLabel}</div>
+        <table>
+          <tr><td>ID de Inventário</td><td>${obra.inventarioId}</td></tr>
+          <tr><td>Ano</td><td>${obra.ano}</td></tr>
+          <tr><td>Medidas</td><td>${obra.dimensoes}</td></tr>
+          <tr><td>Técnica</td><td>${obra.tecnica}</td></tr>
+          <tr><td>Médium</td><td>${obra.tecnica}</td></tr>
+          <tr><td>Preço</td><td>${precoObra}</td></tr>
+          <tr><td>Status</td><td>${statusObra}</td></tr>
+          <tr><td>Localização</td><td>${locObra}</td></tr>
+          <tr><td>Coleção</td><td>${colecao}</td></tr>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 400);
+  }
+
+  return (
+    <Dialog open={true} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="modal-visualizar-obra">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between gap-2" data-testid="text-visualizar-title">
+            <span>Ficha Técnica</span>
+            <Button variant="outline" size="sm" onClick={handleImprimir} data-testid="button-imprimir-obra">
+              <Printer className="mr-1.5 h-3.5 w-3.5" />
+              Imprimir Obra
+            </Button>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          <div className="rounded-md overflow-hidden border border-border">
+            <img
+              src={obra.imagem}
+              alt={obra.titulo}
+              className="w-full max-h-[400px] object-contain bg-muted/30"
+              data-testid="img-visualizar-obra"
+            />
+          </div>
+
+          <div className="text-center space-y-1">
+            <h2 className="text-xl font-semibold text-foreground" data-testid="text-visualizar-titulo">{obra.titulo}</h2>
+            <p className="text-sm text-muted-foreground">{artistaLabel}</p>
+          </div>
+
+          <div className="rounded-md border border-border divide-y divide-border">
+            {[
+              { label: "ID de Inventário", value: obra.inventarioId },
+              { label: "Ano", value: String(obra.ano) },
+              { label: "Medidas", value: obra.dimensoes },
+              { label: "Técnica", value: obra.tecnica },
+              { label: "Médium", value: obra.tecnica },
+              { label: "Preço", value: precoObra },
+              { label: "Status", value: statusObra },
+              { label: "Localização", value: locObra },
+              { label: "Coleção", value: colecao },
+            ].map((row) => (
+              <div key={row.label} className="flex items-center px-4 py-3 gap-4">
+                <span className="text-xs font-medium text-muted-foreground w-36 flex-shrink-0">{row.label}</span>
+                <span className="text-sm text-foreground" data-testid={`text-ficha-${row.label.toLowerCase().replace(/\s/g, "-")}`}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} data-testid="button-fechar-visualizar">
+            Fechar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ObraCard({
   obra,
   artista,
   onCertificado,
+  onVisualizar,
   modoSelecao,
   selecionada,
   onToggleSelecao,
@@ -495,6 +635,7 @@ function ObraCard({
   obra: Obra;
   artista?: Artista;
   onCertificado?: (obra: Obra) => void;
+  onVisualizar?: (obra: Obra) => void;
   modoSelecao?: boolean;
   selecionada?: boolean;
   onToggleSelecao?: (id: number) => void;
@@ -557,7 +698,7 @@ function ObraCard({
 
         <Separator className="my-4" />
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
@@ -565,6 +706,15 @@ function ObraCard({
           >
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
             Editar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onVisualizar?.(obra)}
+            data-testid={`button-visualizar-${obra.id}`}
+          >
+            <Eye className="mr-1.5 h-3.5 w-3.5" />
+            Visualizar
           </Button>
           <Button
             size="sm"
@@ -926,11 +1076,13 @@ function ArtistaAcervo({
   obras,
   filtro,
   onCertificado,
+  onVisualizar,
 }: {
   artistas: Artista[];
   obras: Obra[];
   filtro: string;
   onCertificado: (obra: Obra) => void;
+  onVisualizar: (obra: Obra) => void;
 }) {
   const artistasFiltrados = filtro === "todos"
     ? artistas
@@ -962,7 +1114,7 @@ function ArtistaAcervo({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {obrasDoArtista.map((obra) => (
-                <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} />
+                <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} onVisualizar={onVisualizar} />
               ))}
             </div>
           </section>
@@ -976,6 +1128,7 @@ function AcervoSimples({
   artistas,
   obras,
   onCertificado,
+  onVisualizar,
   modoSelecao,
   selecionadas,
   onToggleSelecao,
@@ -983,6 +1136,7 @@ function AcervoSimples({
   artistas: Artista[];
   obras: Obra[];
   onCertificado: (obra: Obra) => void;
+  onVisualizar: (obra: Obra) => void;
   modoSelecao?: boolean;
   selecionadas?: Set<number>;
   onToggleSelecao?: (id: number) => void;
@@ -997,6 +1151,7 @@ function AcervoSimples({
             obra={obra}
             artista={artista}
             onCertificado={onCertificado}
+            onVisualizar={onVisualizar}
             modoSelecao={modoSelecao}
             selecionada={selecionadas?.has(obra.id)}
             onToggleSelecao={onToggleSelecao}
@@ -1125,6 +1280,7 @@ function PaginaObras({
   filtro,
   setFiltro,
   onCertificado,
+  onVisualizar,
   onGerarCatalogo,
 }: {
   perfil: string;
@@ -1133,6 +1289,7 @@ function PaginaObras({
   filtro: string;
   setFiltro: (f: string) => void;
   onCertificado: (obra: Obra) => void;
+  onVisualizar: (obra: Obra) => void;
   onGerarCatalogo: (obrasSelecionadas: Obra[]) => void;
 }) {
   const isColecionador = perfil === "colecionador";
@@ -1236,12 +1393,13 @@ function PaginaObras({
 
       <div className="p-6">
         {isColecionador ? (
-          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} onCertificado={onCertificado} />
+          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} onCertificado={onCertificado} onVisualizar={onVisualizar} />
         ) : (
           <AcervoSimples
             artistas={artistas}
             obras={obras}
             onCertificado={onCertificado}
+            onVisualizar={onVisualizar}
             modoSelecao={modoSelecao}
             selecionadas={selecionadas}
             onToggleSelecao={toggleSelecao}
@@ -1368,6 +1526,7 @@ export default function Dashboard() {
   const [filtro, setFiltro] = useState("todos");
   const [paginaAtiva, setPaginaAtiva] = useState("obras");
   const [obraCertificado, setObraCertificado] = useState<Obra | null>(null);
+  const [obraVisualizar, setObraVisualizar] = useState<Obra | null>(null);
   const [catalogos, setCatalogos] = useState<CatalogoItem[]>(carregarCatalogos);
   const [catalogoVisualizado, setCatalogoVisualizado] = useState<CatalogoItem | null>(null);
   const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
@@ -1481,6 +1640,7 @@ export default function Dashboard() {
             filtro={filtro}
             setFiltro={setFiltro}
             onCertificado={handleCertificado}
+            onVisualizar={setObraVisualizar}
             onGerarCatalogo={handleGerarCatalogo}
           />
         );
@@ -1525,7 +1685,8 @@ export default function Dashboard() {
       case "oport-edital":
       case "oport-consignacao":
       case "oport-feiras":
-      case "oport-mercado":
+      case "oport-avaliacao":
+      case "oport-leiloes":
       case "oport-caixa":
         if (!premium) {
           return <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
@@ -1536,7 +1697,8 @@ export default function Dashboard() {
           case "oport-edital": return <EditalPage tecnicaArtista="Óleo sobre tela" />;
           case "oport-consignacao": return <ConsignacaoPage />;
           case "oport-feiras": return <FeirasPage />;
-          case "oport-mercado": return <MercadoPage obras={obras} />;
+          case "oport-avaliacao": return <AvaliacaoPage />;
+          case "oport-leiloes": return <LeiloesPage obras={obras} />;
           case "oport-caixa": return <CaixaEntradaPage />;
           default: return <Placeholder page={paginaAtiva} />;
         }
@@ -1650,6 +1812,14 @@ export default function Dashboard() {
           catalogo={catalogoVisualizado}
           onClose={() => setCatalogoVisualizado(null)}
           mostrarMarcaDagua={!premium}
+        />
+      )}
+
+      {obraVisualizar && (
+        <VisualizarObraModal
+          obra={obraVisualizar}
+          artista={artistas.find((a) => a.id === obraVisualizar.artistaId)}
+          onClose={() => setObraVisualizar(null)}
         />
       )}
     </SidebarProvider>

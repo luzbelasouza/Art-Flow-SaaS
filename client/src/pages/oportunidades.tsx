@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Crown,
@@ -20,6 +22,13 @@ import {
   Clock,
   ArrowRight,
   Zap,
+  Search,
+  ShieldCheck,
+  Printer,
+  Gavel,
+  Check,
+  AlertCircle,
+  Lock,
 } from "lucide-react";
 
 interface Obra {
@@ -64,7 +73,8 @@ export function OportunidadesUpsell({ onAssinar }: { onAssinar: () => void }) {
               { icon: Palette, titulo: "Editais Culturais", desc: "Calendário de editais com match inteligente por técnica" },
               { icon: Tag, titulo: "Consignação", desc: "Diretório de galerias que aceitam acervo consignado" },
               { icon: Globe, titulo: "Feiras de Arte", desc: "Calendário global de feiras nacionais e internacionais" },
-              { icon: ShoppingBag, titulo: "Mercado Direto", desc: "Liste obras para venda direta na plataforma" },
+              { icon: ShoppingBag, titulo: "Avaliação de Mercado", desc: "Avaliação profissional baseada em leilões recentes" },
+              { icon: Gavel, titulo: "Leilões Públicos", desc: "Envie obras para captação em leiloeiros cadastrados" },
               { icon: MessageSquare, titulo: "Caixa de Entrada", desc: "Mensagens diretas entre artistas, galerias e colecionadores" },
               { icon: Zap, titulo: "Match Inteligente", desc: "Sugestões personalizadas com base na sua técnica e estilo" },
             ].map((item) => (
@@ -485,95 +495,345 @@ export function FeirasPage() {
   );
 }
 
-export function MercadoPage({ obras }: { obras: Obra[] }) {
-  const [publicadas, setPublicadas] = useState<Set<number>>(new Set());
+function carregarAvaliacao(): { artista: string; obra: string; status: string; data: string } | null {
+  try {
+    const raw = localStorage.getItem("artflow_avaliacao_pendente");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
 
-  const obrasEstoque = obras.filter(() => true);
+function salvarAvaliacao(av: { artista: string; obra: string; status: string; data: string }) {
+  localStorage.setItem("artflow_avaliacao_pendente", JSON.stringify(av));
+}
 
-  const statusObra: Record<string, string> = {
-    "ID-M001": "Acervo Pessoal",
-    "ID-M002": "Consignação",
-    "ID-M003": "Estoque",
-  };
+function limparAvaliacao() {
+  localStorage.removeItem("artflow_avaliacao_pendente");
+}
 
-  const precosObra: Record<string, string> = {
-    "ID-M001": "R$ 45.000,00",
-    "ID-M002": "R$ 38.000,00",
-    "ID-M003": "R$ 52.000,00",
-  };
+export function AvaliacaoPage() {
+  const [nomeArtista, setNomeArtista] = useState("");
+  const [nomeObra, setNomeObra] = useState("");
+  const [pendente, setPendente] = useState(carregarAvaliacao);
+  const [enviada, setEnviada] = useState(false);
 
-  function handlePublicar(id: number) {
-    setPublicadas((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
+  function handleSolicitar() {
+    if (!nomeArtista.trim()) return;
+    const nova = {
+      artista: nomeArtista.trim(),
+      obra: nomeObra.trim() || "(não especificada)",
+      status: "pendente",
+      data: new Date().toLocaleDateString("pt-BR"),
+    };
+    salvarAvaliacao(nova);
+    setPendente(nova);
+    setEnviada(true);
+    setNomeArtista("");
+    setNomeObra("");
+  }
+
+  function handleCancelar() {
+    limparAvaliacao();
+    setPendente(null);
+    setEnviada(false);
   }
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <p className="text-sm text-muted-foreground mb-4" data-testid="text-mercado-desc">
-          Vitrine de obras disponíveis para venda direta na plataforma. Obras com status "Estoque" podem ser publicadas.
+      <div className="max-w-2xl mx-auto space-y-6">
+        <p className="text-sm text-muted-foreground" data-testid="text-avaliacao-desc">
+          Solicite uma avaliação de mercado para obras de arte. Nossa equipe de especialistas analisará leilões recentes e enviará o resultado na Caixa de Entrada.
         </p>
-        {obrasEstoque.map((obra) => {
-          const status = statusObra[obra.inventarioId] || "Acervo Pessoal";
-          const preco = precosObra[obra.inventarioId] || "Sob consulta";
-          const isEstoque = status === "Estoque";
-          const isPublicada = publicadas.has(obra.id);
 
-          return (
-            <Card key={obra.id} className="p-4 flex items-center gap-4" data-testid={`card-mercado-${obra.id}`}>
-              <img
-                src={obra.imagem}
-                alt={obra.titulo}
-                className="h-20 w-20 object-cover rounded-sm flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0 space-y-1">
-                <h3 className="text-sm font-semibold text-foreground truncate">{obra.titulo}</h3>
-                <p className="text-xs text-muted-foreground">{obra.tecnica}, {obra.ano}</p>
-                <p className="text-xs font-medium text-foreground">{preco}</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="secondary" className="text-[10px]">{status}</Badge>
-                  {isPublicada && (
-                    <Badge
-                      className="no-default-hover-elevate no-default-active-elevate text-[10px]"
-                      style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#16a34a", borderColor: "rgba(34, 197, 94, 0.3)" }}
-                      data-testid={`badge-publicada-${obra.id}`}
-                    >
-                      Publicada
-                    </Badge>
-                  )}
+        {pendente ? (
+          <div className="space-y-4">
+            <Card className="p-5 space-y-4" data-testid="card-avaliacao-pendente">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" style={{ color: "#D4A843" }} />
+                <span className="text-sm font-medium text-foreground">Solicitação em Andamento</span>
+              </div>
+
+              <div className="rounded-md bg-muted/50 p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-24">Artista:</span>
+                  <span className="text-sm font-medium text-foreground" data-testid="text-avaliacao-artista">{pendente.artista}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-24">Obra:</span>
+                  <span className="text-sm text-foreground" data-testid="text-avaliacao-obra">{pendente.obra}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-24">Data:</span>
+                  <span className="text-sm text-muted-foreground">{pendente.data}</span>
                 </div>
               </div>
-              <Button
-                variant={isPublicada ? "ghost" : "outline"}
-                size="sm"
-                disabled={!isEstoque && !isPublicada}
-                onClick={() => handlePublicar(obra.id)}
-                data-testid={`button-publicar-${obra.id}`}
-                style={isEstoque && !isPublicada ? { borderColor: "rgba(212, 168, 67, 0.4)", color: "#D4A843" } : undefined}
-              >
-                {isPublicada ? "Remover" : (
-                  <>
-                    <ShoppingBag className="mr-1.5 h-3 w-3" />
-                    Publicar para Venda
-                  </>
-                )}
+
+              <div className="rounded-md p-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
+                <p className="text-xs text-muted-foreground" data-testid="text-avaliacao-mensagem">
+                  Sua avaliação chegará em 24h na Caixa de Entrada por nossa equipe de especialistas.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Novas solicitações bloqueadas até que a atual seja respondida (1 por vez).</span>
+              </div>
+
+              <Button variant="ghost" size="sm" onClick={handleCancelar} data-testid="button-cancelar-avaliacao">
+                Cancelar Solicitação
               </Button>
             </Card>
-          );
-        })}
+
+            <Separator />
+
+            <Card className="p-5 space-y-3" data-testid="card-pacotes-estrelas">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4" style={{ color: "#D4A843" }} />
+                <span className="text-sm font-medium text-foreground">Pacotes de Estrelas</span>
+                <Badge
+                  className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+                  style={{ backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" }}
+                >
+                  Em Desenvolvimento
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Em breve você poderá adquirir pacotes de estrelas para solicitar múltiplas avaliações simultaneamente, sem precisar aguardar a resposta da anterior.
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { estrelas: 3, preco: "R$ 29,90" },
+                  { estrelas: 5, preco: "R$ 44,90" },
+                  { estrelas: 10, preco: "R$ 79,90" },
+                ].map((p) => (
+                  <div
+                    key={p.estrelas}
+                    className="rounded-md p-3 text-center opacity-60"
+                    style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.15)" }}
+                    data-testid={`card-pacote-${p.estrelas}`}
+                  >
+                    <div className="flex items-center justify-center gap-0.5 mb-1">
+                      {Array.from({ length: Math.min(p.estrelas, 5) }).map((_, i) => (
+                        <Star key={i} className="h-3 w-3" style={{ color: "#D4A843", fill: "#D4A843" }} />
+                      ))}
+                    </div>
+                    <p className="text-xs font-medium text-foreground">{p.estrelas} avaliações</p>
+                    <p className="text-[10px] text-muted-foreground">{p.preco}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <Card className="p-5 space-y-5" data-testid="card-formulario-avaliacao">
+            {enviada && (
+              <div className="rounded-md p-3 flex items-center gap-2" style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)" }}>
+                <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#16a34a" }} />
+                <span className="text-xs" style={{ color: "#16a34a" }}>Solicitação enviada com sucesso!</span>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="nome-artista-avaliacao">Nome do Artista *</Label>
+              <Input
+                id="nome-artista-avaliacao"
+                placeholder="Ex: Camille Pissarro"
+                value={nomeArtista}
+                onChange={(e) => setNomeArtista(e.target.value)}
+                data-testid="input-artista-avaliacao"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="nome-obra-avaliacao">Nome da Obra (opcional)</Label>
+              <Input
+                id="nome-obra-avaliacao"
+                placeholder="Ex: Colheita das Maçãs"
+                value={nomeObra}
+                onChange={(e) => setNomeObra(e.target.value)}
+                data-testid="input-obra-avaliacao"
+              />
+            </div>
+
+            <div className="rounded-md p-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
+              <p className="text-xs text-muted-foreground">
+                Sua avaliação chegará em 24h na Caixa de Entrada por nossa equipe de especialistas.
+              </p>
+            </div>
+
+            <Button
+              onClick={handleSolicitar}
+              disabled={!nomeArtista.trim()}
+              data-testid="button-solicitar-avaliacao"
+            >
+              <Send className="mr-2 h-4 w-4" />
+              Solicitar Avaliação
+            </Button>
+          </Card>
+        )}
       </div>
     </div>
   );
 }
 
-const mensagens = [
+const leiloesAtivos = [
+  {
+    id: 1,
+    titulo: "Leilão de Arte Moderna e Contemporânea",
+    leiloeiro: "Bolsa de Arte",
+    local: "São Paulo, SP",
+    data: "25 a 27 de março de 2026",
+    captacao: "Aberta até 10 de março",
+    categorias: ["Pintura", "Escultura", "Gravura"],
+  },
+  {
+    id: 2,
+    titulo: "Latin American Art Auction",
+    leiloeiro: "Christie's",
+    local: "Nova York, EUA",
+    data: "15 de maio de 2026",
+    captacao: "Aberta até 20 de abril",
+    categorias: ["Pintura", "Desenho"],
+  },
+  {
+    id: 3,
+    titulo: "Leilão de Arte Brasileira",
+    leiloeiro: "Escritório de Arte",
+    local: "Rio de Janeiro, RJ",
+    data: "8 de abril de 2026",
+    captacao: "Aberta até 15 de março",
+    categorias: ["Pintura", "Fotografia", "Gravura"],
+  },
+  {
+    id: 4,
+    titulo: "Impressionist & Modern Art",
+    leiloeiro: "Sotheby's",
+    local: "Londres, UK",
+    data: "20 de junho de 2026",
+    captacao: "Aberta até 30 de abril",
+    categorias: ["Pintura", "Óleo sobre tela"],
+  },
+];
+
+export function LeiloesPage({ obras }: { obras: Obra[] }) {
+  const [selecionadas, setSelecionadas] = useState<Set<number>>(new Set());
+  const [enviadas, setEnviadas] = useState(false);
+
+  function toggleSelecao(id: number) {
+    setSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleEnviarCaptacao() {
+    setEnviadas(true);
+    setSelecionadas(new Set());
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <p className="text-sm text-muted-foreground" data-testid="text-leiloes-desc">
+          Leilões ativos captando acervo. Selecione obras do seu acervo e envie para todos os leiloeiros de uma só vez.
+        </p>
+
+        {enviadas && (
+          <div className="rounded-md p-3 flex items-center gap-2" style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)" }} data-testid="alert-captacao-enviada">
+            <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#16a34a" }} />
+            <span className="text-xs" style={{ color: "#16a34a" }}>
+              Obras enviadas para captação em {leiloesAtivos.length} leiloeiros cadastrados!
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Leilões Ativos</h3>
+          {leiloesAtivos.map((l) => (
+            <Card key={l.id} className="p-5" data-testid={`card-leilao-${l.id}`}>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="space-y-1.5 min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">{l.titulo}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Gavel className="h-3 w-3 flex-shrink-0" />
+                    {l.leiloeiro} — {l.local}
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    {l.data}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                    {l.categorias.map((c) => (
+                      <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <Badge
+                  className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+                  style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#16a34a", borderColor: "rgba(34, 197, 94, 0.3)" }}
+                >
+                  {l.captacao}
+                </Badge>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <Separator />
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-foreground" data-testid="text-enviar-captacao-titulo">
+            Enviar para Captação
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Selecione as obras do seu acervo que deseja enviar para todos os leiloeiros cadastrados.
+          </p>
+
+          <div className="space-y-2">
+            {obras.map((obra) => {
+              const sel = selecionadas.has(obra.id);
+              return (
+                <Card
+                  key={obra.id}
+                  className={`p-3 flex items-center gap-3 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
+                  onClick={() => toggleSelecao(obra.id)}
+                  data-testid={`card-captacao-obra-${obra.id}`}
+                >
+                  <div className={`h-5 w-5 rounded-sm border flex items-center justify-center flex-shrink-0 ${sel ? "bg-primary border-primary" : "border-border"}`}>
+                    {sel && <Check className="h-3 w-3 text-primary-foreground" />}
+                  </div>
+                  <img
+                    src={obra.imagem}
+                    alt={obra.titulo}
+                    className="h-12 w-12 object-cover rounded-sm flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{obra.titulo}</p>
+                    <p className="text-xs text-muted-foreground">{obra.tecnica}, {obra.ano}</p>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">{obra.inventarioId}</span>
+                </Card>
+              );
+            })}
+          </div>
+
+          <Button
+            disabled={selecionadas.size === 0}
+            onClick={handleEnviarCaptacao}
+            data-testid="button-enviar-captacao"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Enviar {selecionadas.size > 0 ? `(${selecionadas.size})` : ""} para {leiloesAtivos.length} Leiloeiros
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const mensagensBase = [
   {
     id: 1,
     remetente: "Angela Marques",
@@ -582,6 +842,7 @@ const mensagens = [
     preview: "Bom dia! Vi sua obra na exposição e gostaria de saber sobre disponibilidade...",
     data: "Hoje",
     lida: false,
+    isRelatorio: false,
   },
   {
     id: 2,
@@ -591,6 +852,7 @@ const mensagens = [
     preview: "Gostaríamos de incluir suas obras na próxima exposição coletiva...",
     data: "Ontem",
     lida: true,
+    isRelatorio: false,
   },
   {
     id: 3,
@@ -600,10 +862,159 @@ const mensagens = [
     preview: "Tenho interesse em uma paisagem rural no estilo da série Pontoise...",
     data: "12 fev",
     lida: true,
+    isRelatorio: false,
   },
 ];
 
+const artistasValidados: Record<string, string> = {
+  "camille pissarro": "R$ 42.500,00",
+  "ernst ludwig kirchner": "R$ 68.000,00",
+  "mary cassatt": "R$ 55.000,00",
+  "claude monet": "R$ 120.000,00",
+  "pablo picasso": "R$ 250.000,00",
+};
+
+function RelatorioAvaliacao({ artista, obra }: { artista: string; obra: string }) {
+  const chave = artista.toLowerCase();
+  const validado = artistasValidados[chave];
+
+  function handleImprimir() {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Relatório de Avaliação — Art Flow</title>
+        <style>
+          @media print { @page { size: A4; margin: 20mm; } }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #D4A843; padding-bottom: 15px; }
+          .header h1 { font-size: 14px; letter-spacing: 3px; color: #D4A843; margin: 0 0 8px; }
+          .selo { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 99px; border: 2px solid #D4A843; background: rgba(212,168,67,0.05); margin-top: 10px; }
+          .selo span { font-size: 11px; font-weight: 600; letter-spacing: 2px; color: #D4A843; }
+          .content { margin: 20px 0; }
+          .field { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; }
+          .field-label { font-weight: 600; color: #555; width: 140px; font-size: 13px; }
+          .field-value { font-size: 13px; }
+          .resultado { margin: 24px 0; padding: 20px; border-radius: 8px; }
+          .resultado.validado { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); }
+          .resultado.nao-validado { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); }
+          .resultado h3 { font-size: 14px; margin: 0 0 8px; }
+          .resultado p { font-size: 12px; color: #555; margin: 0; }
+          .preco { font-size: 22px; font-weight: 600; color: #16a34a; margin: 8px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>ART FLOW — RELATÓRIO DE AVALIAÇÃO</h1>
+          <div class="selo"><span>ART FLOW VERIFIED</span></div>
+        </div>
+        <div class="content">
+          <div class="field"><span class="field-label">Artista</span><span class="field-value">${artista}</span></div>
+          <div class="field"><span class="field-label">Obra</span><span class="field-value">${obra}</span></div>
+          <div class="field"><span class="field-label">Data</span><span class="field-value">${new Date().toLocaleDateString("pt-BR")}</span></div>
+        </div>
+        ${validado ? `
+          <div class="resultado validado">
+            <h3>Artista Validado no Mercado Secundário</h3>
+            <p>Preço estimado baseado em leilões recentes:</p>
+            <div class="preco">${validado}</div>
+          </div>
+        ` : `
+          <div class="resultado nao-validado">
+            <h3>Artista Não Validado no Mercado Secundário</h3>
+            <p>O artista solicitado nunca teve suas obras revendidas em leilões públicos. Isso não diminui o valor artístico da obra, mas indica que ainda não há um histórico de mercado secundário para referência de preço.</p>
+          </div>
+        `}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 400);
+  }
+
+  return (
+    <div className="space-y-4" data-testid="relatorio-avaliacao">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1"
+            style={{ border: "2px solid #D4A843", backgroundColor: "rgba(212, 168, 67, 0.05)" }}
+            data-testid="selo-art-flow-verified"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" style={{ color: "#D4A843" }} />
+            <span className="text-[10px] font-semibold tracking-wider" style={{ color: "#D4A843" }}>
+              ART FLOW VERIFIED
+            </span>
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={handleImprimir} data-testid="button-imprimir-relatorio">
+          <Printer className="mr-1.5 h-3.5 w-3.5" />
+          Imprimir
+        </Button>
+      </div>
+
+      <div className="rounded-md bg-muted/50 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-20">Artista:</span>
+          <span className="text-sm font-medium text-foreground">{artista}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-20">Obra:</span>
+          <span className="text-sm text-foreground">{obra}</span>
+        </div>
+      </div>
+
+      {validado ? (
+        <div
+          className="rounded-md p-4 space-y-2"
+          style={{ backgroundColor: "rgba(34, 197, 94, 0.06)", border: "1px solid rgba(34, 197, 94, 0.2)" }}
+          data-testid="resultado-validado"
+        >
+          <p className="text-sm font-medium text-foreground">Artista Validado no Mercado Secundário</p>
+          <p className="text-xs text-muted-foreground">Preço estimado baseado em leilões recentes:</p>
+          <p className="text-xl font-semibold" style={{ color: "#16a34a" }} data-testid="text-preco-estimado">{validado}</p>
+        </div>
+      ) : (
+        <div
+          className="rounded-md p-4 space-y-3"
+          style={{ backgroundColor: "rgba(239, 68, 68, 0.04)", border: "1px solid rgba(239, 68, 68, 0.15)" }}
+          data-testid="resultado-nao-validado"
+        >
+          <p className="text-sm font-medium text-foreground">Artista não validado no mercado secundário</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Isso significa que o artista solicitado nunca teve suas obras revendidas em leilões públicos. Isso não diminui o valor artístico da obra, mas indica que ainda não há um histórico de mercado secundário para referência de preço.
+          </p>
+          <Button variant="outline" size="sm" data-testid="button-inserir-leilao">
+            <Gavel className="mr-1.5 h-3.5 w-3.5" />
+            Deseja inserir suas obras em um leilão público?
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CaixaEntradaPage() {
+  const [expandido, setExpandido] = useState<number | null>(null);
+  const avaliacao = carregarAvaliacao();
+
+  const mensagens = [...mensagensBase];
+  if (avaliacao) {
+    mensagens.unshift({
+      id: 100,
+      remetente: "Art Flow — Equipe de Avaliação",
+      tipo: "Avaliação",
+      assunto: `Relatório de Avaliação: ${avaliacao.artista}`,
+      preview: `Resultado da avaliação solicitada para ${avaliacao.artista}${avaliacao.obra !== "(não especificada)" ? ` — ${avaliacao.obra}` : ""}`,
+      data: "Hoje",
+      lida: false,
+      isRelatorio: true,
+    });
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-2">
@@ -611,31 +1022,47 @@ export function CaixaEntradaPage() {
           Central de mensagens entre artistas, galerias e colecionadores.
         </p>
         {mensagens.map((m) => (
-          <Card
-            key={m.id}
-            className="p-4 hover-elevate cursor-pointer"
-            style={!m.lida ? { borderLeft: "3px solid #D4A843" } : undefined}
-            data-testid={`card-mensagem-${m.id}`}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-sm ${!m.lida ? "font-semibold" : "font-medium"} text-foreground`}>
-                    {m.remetente}
-                  </span>
-                  <Badge variant="secondary" className="text-[10px]">{m.tipo}</Badge>
-                  {!m.lida && (
-                    <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
-                  )}
+          <div key={m.id}>
+            <Card
+              className={`p-4 hover-elevate cursor-pointer ${expandido === m.id ? "ring-1 ring-primary/30" : ""}`}
+              style={!m.lida ? { borderLeft: "3px solid #D4A843" } : undefined}
+              onClick={() => setExpandido(expandido === m.id ? null : m.id)}
+              data-testid={`card-mensagem-${m.id}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-sm ${!m.lida ? "font-semibold" : "font-medium"} text-foreground`}>
+                      {m.remetente}
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px]"
+                      style={m.tipo === "Avaliação" ? { backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" } : undefined}
+                    >
+                      {m.tipo}
+                    </Badge>
+                    {!m.lida && (
+                      <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
+                    )}
+                  </div>
+                  <p className={`text-xs ${!m.lida ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+                    {m.assunto}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{m.preview}</p>
                 </div>
-                <p className={`text-xs ${!m.lida ? "font-medium text-foreground" : "text-muted-foreground"}`}>
-                  {m.assunto}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">{m.preview}</p>
+                <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{m.data}</span>
               </div>
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{m.data}</span>
-            </div>
-          </Card>
+            </Card>
+
+            {expandido === m.id && m.isRelatorio && avaliacao && (
+              <div className="mt-2 ml-3 mr-3 mb-4" data-testid="container-relatorio-expandido">
+                <Card className="p-5">
+                  <RelatorioAvaliacao artista={avaliacao.artista} obra={avaliacao.obra} />
+                </Card>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>

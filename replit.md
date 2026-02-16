@@ -10,6 +10,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - **Etapa 10 (Concluída):** 7 novas telas funcionais – Exposições, Vendas, Agenda, Contatos, Localização, Produção, Mapa da Obra interativo com popups.
 - **Etapa 11 (Concluída):** Coleções/Séries com "Vida no Campo: A Série de Pontoise", Documentos estilo Drive com busca e 3 arquivos, selos de coleção nos cards de obras. Ajustes de consistência: IDs de Inventário padronizados (ID-M001 a ID-M003), aba Certificados funcional com repositório automático e busca inteligente, dimensões nas obras de Pissarro.
 - **Etapa 16 (Concluída):** Logística de Tiragens, Exposições e Representação. Botão "+ Adicionar Exposição" com modal. Aba "Agenda" renomeada para "Representação" com galerias parceiras. Produção separada em Obras Únicas vs Tiragens com modal completo (técnica reprodução, quantidade, P.A., suporte, gramatura). Nova Obra com associação a tiragem (numeração ex: 1/20, P.A. 1/5), exposição e representação. Contador visual de disponibilidade nas tiragens.
+- **Etapa 17 (Concluída):** Visualização Individual e Inteligência de Mercado. Botão "Visualizar" nos cards de obra com modal ficha técnica completa (foto ampliada, ID, medidas, preço, status, localização) e impressão A4. "Mercado" renomeado para "Avaliação" com formulário (artista obrigatório, obra opcional), bloqueio de solicitações simultâneas, pacotes de estrelas (em dev). Relatório de avaliação na Caixa de Entrada com selo "Art Flow Verified", preço estimado ou aviso de artista não validado. Nova sub-aba "Leilões Públicos" com 4 leilões ativos e função "Enviar para Captação" em massa.
 
 ## Arquitetura
 - **Frontend:** React + Tailwind CSS + shadcn/ui (wouter para rotas)
@@ -32,7 +33,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - **Logística:** Localização
 - **Comercial:** Contatos, Vendas
 - **Arquivo:** Documentos, Certificados (COA)
-- **Oportunidades (Premium):** Expo, Ocupação, Edital (com Match), Consignação, Feiras, Mercado, Caixa de Entrada
+- **Oportunidades (Premium):** Expo, Ocupação, Edital (com Match), Consignação, Feiras, Avaliação, Leilões Públicos, Caixa de Entrada
 
 ## Perfis de Usuário
 - **Artista:** Vê acervo do Pissarro (3 obras), sidebar com menu ERP completo
@@ -66,6 +67,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/oportunidades.tsx` - Central de Oportunidades Premium (Expo, Ocupação, Edital, Consignação, Feiras, Mercado, Caixa de Entrada)
 
 ## Alterações Recentes
+- 2026-02-16: Etapa 17 - Visualização Individual e Inteligência de Mercado: botão "Visualizar" nos cards de obra com modal ficha técnica (foto ampliada, ID, medidas, preço, status) e impressão A4, "Mercado" renomeado para "Avaliação" com formulário e bloqueio de solicitações simultâneas, Relatório Art Flow Verified na Caixa de Entrada, nova sub-aba "Leilões Públicos" com 4 leilões e envio em massa para captação
 - 2026-02-16: Etapa 16 - Logística de Tiragens, Exposições e Representação: botão "+ Adicionar Exposição" com modal, aba "Agenda" renomeada para "Representação" com galerias parceiras, Produção separada em Obras Únicas vs Tiragens com modal completo, Nova Obra com associação a tiragem (numeração 1/20, P.A. 1/5), exposição e representação, contador visual de disponibilidade nas tiragens
 - 2026-02-16: Central de Oportunidades Premium - 7 novas telas (Expo, Ocupação, Edital com Match, Consignação, Feiras, Mercado com vitrine, Caixa de Entrada), grupo Oportunidades na sidebar com coroa dourada, landing page upsell "Conecte sua Arte ao Mercado", Match inteligente por técnica
 - 2026-02-16: Modelo Freemium - Limites (5 obras, 1 cert, 1 catálogo), selos PREMIUM dourados na sidebar, UpsellModal (R$49,90/mês), marca d'água diagonal em certificados/catálogos, seção Assinatura no Perfil, bloqueio de Nova Obra/certificado/catálogo ao atingir limite
