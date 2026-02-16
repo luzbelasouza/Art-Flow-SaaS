@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { carregarMensagensLeilao } from "@/pages/venda-sua-arte";
 import {
   Crown,
   Sparkles,
@@ -1615,6 +1616,7 @@ export function CaixaEntradaPage({ onVisualizarCatalogo }: { onVisualizarCatalog
   const [expandido, setExpandido] = useState<number | null>(null);
   const avaliacao = carregarAvaliacao();
   const envios = carregarEnvios();
+  const mensagensLeilao = carregarMensagensLeilao();
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
@@ -1746,6 +1748,42 @@ export function CaixaEntradaPage({ onVisualizarCatalogo }: { onVisualizarCatalog
                 )}
               </div>
             )}
+
+            {mensagensLeilao.map((msg, idx) => (
+              <Card
+                key={`leilao-msg-${idx}`}
+                className="p-4 hover-elevate cursor-pointer"
+                style={{ borderLeft: "3px solid #D4A843" }}
+                data-testid={`card-mensagem-leilao-${idx}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-foreground">
+                        Art Flow — Avaliação para Leilão
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px]"
+                        style={{ backgroundColor: msg.status === "aprovada" ? "rgba(34, 197, 94, 0.1)" : "rgba(239, 68, 68, 0.1)", color: msg.status === "aprovada" ? "#16a34a" : "#dc2626", borderColor: msg.status === "aprovada" ? "rgba(34, 197, 94, 0.3)" : "rgba(239, 68, 68, 0.3)" }}
+                      >
+                        {msg.status === "aprovada" ? "Aprovada" : "Reprovada"}
+                      </Badge>
+                      <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
+                    </div>
+                    <p className="text-xs font-medium text-foreground">
+                      Resultado da Avaliação: {msg.obraTitulo}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {msg.status === "aprovada"
+                        ? `A obra "${msg.obraTitulo}" foi aprovada e receberá o selo Art Flow Verified.`
+                        : `A obra "${msg.obraTitulo}" não foi aprovada para leilão neste momento.`}
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{msg.data}</span>
+                </div>
+              </Card>
+            ))}
 
             {mensagensBase.map((m) => (
               <Card

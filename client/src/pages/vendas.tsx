@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { DollarSign, BarChart3, ShoppingBag, Package, Plus, Search, AlertCircle } from "lucide-react";
+import { DollarSign, BarChart3, ShoppingBag, Package, Plus, Search, AlertCircle, Gavel } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
 import camponesasImg from "@assets/camponesas_1771198582484.png";
@@ -54,6 +54,23 @@ interface Venda {
   data: string;
   valor: number;
   imagem: string;
+  origemLeilao?: boolean;
+}
+
+const VENDAS_LEILAO_KEY = "artflow_vendas_leilao";
+
+function carregarVendasLeilao(): Venda[] {
+  try {
+    const raw = localStorage.getItem(VENDAS_LEILAO_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+export function registrarVendaLeilao(venda: Venda) {
+  const vendas = carregarVendasLeilao();
+  vendas.unshift(venda);
+  localStorage.setItem(VENDAS_LEILAO_KEY, JSON.stringify(vendas));
 }
 
 const vendasIniciais: Venda[] = [
@@ -82,7 +99,10 @@ function formatarMoeda(valor: number) {
 }
 
 export default function Vendas({ contatos = [], obras = [] }: { contatos?: Contato[]; obras?: Obra[] }) {
-  const [vendas, setVendas] = useState<Venda[]>(vendasIniciais);
+  const [vendas, setVendas] = useState<Venda[]>(() => {
+    const leilaoVendas = carregarVendasLeilao();
+    return [...vendasIniciais, ...leilaoVendas];
+  });
   const [modalAberto, setModalAberto] = useState(false);
   const [buscaObra, setBuscaObra] = useState("");
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null);
@@ -247,7 +267,19 @@ export default function Vendas({ contatos = [], obras = [] }: { contatos?: Conta
                     <p className="font-semibold text-foreground">{formatarMoeda(venda.valor)}</p>
                     <p className="text-xs text-muted-foreground">{venda.data}</p>
                   </div>
-                  <Badge variant="secondary">Vendida</Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="secondary">Vendida</Badge>
+                    {venda.origemLeilao && (
+                      <Badge
+                        className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+                        style={{ backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" }}
+                        data-testid={`badge-leilao-${venda.id}`}
+                      >
+                        <Gavel className="mr-1 h-2.5 w-2.5" />
+                        Leilão Art Flow
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 {i < vendas.length - 1 && <Separator className="mt-4" />}
               </div>

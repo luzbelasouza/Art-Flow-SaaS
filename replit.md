@@ -32,6 +32,11 @@ Art Flow is built as a single-page application (SPA) with a frontend developed u
     - **"Tutores Online" (Artista | Premium):** Showcase of approved tutor cards with avatar, name, category, rating, price, availability. "Contratar" button opens scheduling modal with day/time selection and payment flow. File: `client/src/pages/tutores-online.tsx`.
     - **"Cursos" (Artista | Premium):** Simple LMS with video course grid. Each course has modules (some free preview), pricing, instructor info, ratings, and Premium inclusion badge. Purchase and detail modal. File: `client/src/pages/cursos.tsx`.
 - **Support System:** Real-time chat interface for support tickets (accessible to all profiles). Left panel with ticket list, right panel with chat messages. Create new tickets with category selection. Auto-responses by category. File: `client/src/pages/suporte.tsx`.
+- **Market & Auction Module:**
+    - **"Venda sua Arte" (Artista | Premium):** Submit artworks for auction evaluation. Search by name/ID, up to 5 works per submission. Legal terms (50% commission, R$50 minimum bid, artist ships). Simulated evaluation report sent to Caixa de Entrada within ~5s. Status tracking (Em Avaliação → Aprovada/Reprovada). File: `client/src/pages/venda-sua-arte.tsx`.
+    - **"Leilão Art Flow" (Colecionador/Galeria | Premium):** Professional auction catalog showcase with cover images, auction dates, status badges (Em breve, Em andamento, Em captação). External redirection to leiloes.br. Verified badge count per catalog. File: `client/src/pages/leilao-artflow.tsx`.
+    - **Sales Sync:** Auction sales auto-register in Vendas with "Leilão Art Flow" origin badge. File: `client/src/pages/vendas.tsx`.
+    - **Art Flow Verified:** Golden shield badge on artworks that passed evaluation, displayed in obra cards and auction catalogs.
 - **Data Persistence:** User profile, submissions, and preferences are stored locally using `localStorage`.
 
 **System Design Choices:**

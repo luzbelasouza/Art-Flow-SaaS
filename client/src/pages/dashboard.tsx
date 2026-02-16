@@ -135,6 +135,8 @@ import SejaTutorPage from "@/pages/seja-tutor";
 import TutoresOnlinePage from "@/pages/tutores-online";
 import CursosPage from "@/pages/cursos";
 import SuportePage from "@/pages/suporte";
+import VendaSuaArtePage, { carregarObrasVerificadas } from "@/pages/venda-sua-arte";
+import LeilaoArtFlowPage from "@/pages/leilao-artflow";
 import capaCatalogoImg from "@assets/capa-catalogo_1771213791212.png";
 
 const colecoesObras: Record<number, string> = {
@@ -690,6 +692,8 @@ function ObraCard({
 }) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
   const colecao = colecoesObras[obra.id];
+  const obrasVerificadas = carregarObrasVerificadas();
+  const isVerified = obrasVerificadas.includes(obra.id);
 
   return (
     <Card
@@ -715,12 +719,24 @@ function ObraCard({
         data-testid={`img-obra-${obra.id}`}
       />
       <div className="p-5 flex flex-col flex-1">
-        <h3
-          className="text-lg font-semibold text-foreground"
-          data-testid={`text-titulo-obra-${obra.id}`}
-        >
-          {obra.titulo}
-        </h3>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3
+            className="text-lg font-semibold text-foreground"
+            data-testid={`text-titulo-obra-${obra.id}`}
+          >
+            {obra.titulo}
+          </h3>
+          {isVerified && (
+            <Badge
+              className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+              style={{ backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" }}
+              data-testid={`badge-verified-obra-${obra.id}`}
+            >
+              <ShieldCheck className="mr-1 h-2.5 w-2.5" />
+              Verified
+            </Badge>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">
           {artistaLabel}
         </p>
@@ -1942,8 +1958,9 @@ export default function Dashboard() {
       case "seja-tutor":
         return premium ? <SejaTutorPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "venda-arte":
+        return premium ? <VendaSuaArtePage obras={obras} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "leilao-artflow":
-        return premium ? <Placeholder page={paginaAtiva} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+        return premium ? <LeilaoArtFlowPage /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "armazenamento":
         return <ArmazenamentoPage obras={obras} locais={locaisCompletos} registrosIniciais={registrosArmazenamento} onRegistroSalvo={(obraId: number, localNome: string) => {
           setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
