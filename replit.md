@@ -27,7 +27,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 
 ### Páginas Internas do Dashboard (Perfil Artista)
 - **Perfil:** Perfil (dados do emissor), Bio (detalhada), Exposições, Agenda, Mapa da Obra (detalhada)
-- **Acervo:** Obras, Coleções/Séries, Produção e Tiragem
+- **Acervo:** Obras, Coleções/Séries, Catálogo, Produção e Tiragem
 - **Logística:** Localização
 - **Comercial:** Contatos, Vendas
 - **Arquivo:** Documentos, Certificados (COA)
@@ -60,8 +60,10 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 
 ## Arquivos Importantes (cont.)
 - `client/src/pages/perfil-emissor.tsx` - Formulário do emissor com persistência localStorage
+- `client/src/pages/catalogo.tsx` - Repositório de catálogos e visualizador de documento catálogo
 
 ## Alterações Recentes
+- 2026-02-16: Etapa 12 - Gerador de Catálogos Dinâmicos: modo seleção em Obras, modal de criação, repositório de catálogos, documento visual (capa + obras + emissor), catálogo padrão "Vida no Campo"
 - 2026-02-16: Ajustes de personalização - Aba Perfil (emissor) com formulário completo, linha do emissor no cabeçalho do certificado, aviso amigável se perfil incompleto
 - 2026-02-16: Etapa 11 - Coleções/Séries (Vida no Campo: Pontoise), Documentos (busca + categorias + 3 arquivos), selos de coleção nos cards de obras
 - 2026-02-16: Etapa 10 - Exposições, Vendas (R$135k, +15%), Agenda, Contatos, Localização, Produção com cronômetros, Mapa da Obra com popups
