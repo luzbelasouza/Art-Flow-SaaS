@@ -62,6 +62,10 @@ import {
   Eye,
   UserCog,
   AlertCircle,
+  BookOpen,
+  CheckSquare,
+  Square,
+  Check,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -90,6 +94,8 @@ import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
 import PerfilEmissor, { carregarDadosEmissor, formatarLinhaEmissor } from "@/pages/perfil-emissor";
+import CatalogoPage, { CatalogoDocumento, type CatalogoItem } from "@/pages/catalogo";
+import capaCatalogoImg from "@assets/capa-catalogo_1771213791212.png";
 
 const colecoesObras: Record<number, string> = {
   2: "Vida no Campo: A Série de Pontoise",
@@ -171,6 +177,7 @@ const menuArtista: MenuGroup[] = [
     items: [
       { id: "obras", title: "Obras", icon: Image },
       { id: "colecoes", title: "Coleções / Séries", icon: Layers },
+      { id: "catalogos-repo", title: "Catálogo", icon: BookOpen },
       { id: "producao", title: "Produção e Tiragem", icon: Printer },
     ],
   },
@@ -215,6 +222,7 @@ const titulosPagina: Record<string, string> = {
   agenda: "Agenda",
   "mapa-obra": "Mapa da Obra",
   colecoes: "Coleções / Séries",
+  "catalogos-repo": "Catálogo",
   producao: "Produção e Tiragem",
   localizacao: "Localização",
   contatos: "Contatos",
@@ -305,16 +313,45 @@ function AppSidebar({
   );
 }
 
-function ObraCard({ obra, artista, onCertificado }: { obra: Obra; artista?: Artista; onCertificado?: (obra: Obra) => void }) {
+function ObraCard({
+  obra,
+  artista,
+  onCertificado,
+  modoSelecao,
+  selecionada,
+  onToggleSelecao,
+}: {
+  obra: Obra;
+  artista?: Artista;
+  onCertificado?: (obra: Obra) => void;
+  modoSelecao?: boolean;
+  selecionada?: boolean;
+  onToggleSelecao?: (id: number) => void;
+}) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
   const colecao = colecoesObras[obra.id];
 
   return (
-    <Card className="flex flex-col" data-testid={`card-obra-${obra.id}`}>
+    <Card
+      className={`flex flex-col relative ${modoSelecao && selecionada ? "ring-2 ring-primary" : ""}`}
+      data-testid={`card-obra-${obra.id}`}
+    >
+      {modoSelecao && (
+        <button
+          className="absolute top-3 left-3 z-10 flex items-center justify-center h-6 w-6 rounded-sm bg-background/80 backdrop-blur-sm border border-border/50 cursor-pointer"
+          onClick={() => onToggleSelecao?.(obra.id)}
+          data-testid={`checkbox-obra-${obra.id}`}
+        >
+          {selecionada ? (
+            <Check className="h-4 w-4 text-primary" />
+          ) : null}
+        </button>
+      )}
       <img
         src={obra.imagem}
         alt={obra.titulo}
-        className="h-56 w-full object-cover rounded-t-md"
+        className={`h-56 w-full object-cover rounded-t-md ${modoSelecao ? "cursor-pointer" : ""}`}
+        onClick={modoSelecao ? () => onToggleSelecao?.(obra.id) : undefined}
         data-testid={`img-obra-${obra.id}`}
       />
       <div className="p-5 flex flex-col flex-1">
@@ -665,18 +702,145 @@ function AcervoSimples({
   artistas,
   obras,
   onCertificado,
+  modoSelecao,
+  selecionadas,
+  onToggleSelecao,
 }: {
   artistas: Artista[];
   obras: Obra[];
   onCertificado: (obra: Obra) => void;
+  modoSelecao?: boolean;
+  selecionadas?: Set<number>;
+  onToggleSelecao?: (id: number) => void;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {obras.map((obra) => {
         const artista = artistas.find((a) => a.id === obra.artistaId);
-        return <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} />;
+        return (
+          <ObraCard
+            key={obra.id}
+            obra={obra}
+            artista={artista}
+            onCertificado={onCertificado}
+            modoSelecao={modoSelecao}
+            selecionada={selecionadas?.has(obra.id)}
+            onToggleSelecao={onToggleSelecao}
+          />
+        );
       })}
     </div>
+  );
+}
+
+function NovoCatalogoModal({
+  open,
+  onClose,
+  onSalvar,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSalvar: (titulo: string, descricao: string, capa: string) => void;
+}) {
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [capaPreview, setCapaPreview] = useState<string>("");
+  const [capaFile, setCapaFile] = useState<File | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCapaFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCapaPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function handleSalvar() {
+    onSalvar(titulo, descricao, capaPreview || capaCatalogoImg);
+    setTitulo("");
+    setDescricao("");
+    setCapaPreview("");
+    setCapaFile(null);
+    onClose();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-md" data-testid="modal-novo-catalogo">
+        <DialogHeader>
+          <DialogTitle data-testid="text-modal-catalogo-title">
+            Gerar Catálogo
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="titulo-catalogo">Título do Catálogo</Label>
+            <Input
+              id="titulo-catalogo"
+              placeholder='Ex: "Vida no Campo"'
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              data-testid="input-titulo-catalogo"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="descricao-catalogo">Descrição Breve</Label>
+            <Input
+              id="descricao-catalogo"
+              placeholder="Ex: Paisagens rurais e cenas campestres"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              data-testid="input-descricao-catalogo"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Capa do Catálogo</Label>
+            <label
+              className="flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border p-6 cursor-pointer"
+              data-testid="area-upload-capa"
+            >
+              {capaPreview ? (
+                <img src={capaPreview} alt="Prévia da capa" className="h-32 w-full object-cover rounded-sm" />
+              ) : (
+                <>
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground text-center">
+                    Clique para enviar a imagem de capa
+                  </span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+                data-testid="input-file-capa"
+              />
+            </label>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={onClose} data-testid="button-cancelar-catalogo">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSalvar}
+            disabled={!titulo.trim()}
+            data-testid="button-salvar-catalogo"
+          >
+            Salvar Catálogo
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -687,6 +851,7 @@ function PaginaObras({
   filtro,
   setFiltro,
   onCertificado,
+  onGerarCatalogo,
 }: {
   perfil: string;
   artistas: Artista[];
@@ -694,11 +859,88 @@ function PaginaObras({
   filtro: string;
   setFiltro: (f: string) => void;
   onCertificado: (obra: Obra) => void;
+  onGerarCatalogo: (obrasSelecionadas: Obra[]) => void;
 }) {
   const isColecionador = perfil === "colecionador";
+  const [modoSelecao, setModoSelecao] = useState(false);
+  const [selecionadas, setSelecionadas] = useState<Set<number>>(new Set());
+
+  function toggleSelecao(id: number) {
+    setSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selecionarTodas() {
+    if (selecionadas.size === obras.length) {
+      setSelecionadas(new Set());
+    } else {
+      setSelecionadas(new Set(obras.map((o) => o.id)));
+    }
+  }
+
+  function handleGerarCatalogo() {
+    const obrasSel = obras.filter((o) => selecionadas.has(o.id));
+    onGerarCatalogo(obrasSel);
+    setModoSelecao(false);
+    setSelecionadas(new Set());
+  }
 
   return (
     <div className="flex-1 overflow-y-auto">
+      {!isColecionador && (
+        <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
+          <Button
+            variant={modoSelecao ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setModoSelecao(!modoSelecao);
+              if (modoSelecao) setSelecionadas(new Set());
+            }}
+            data-testid="button-modo-selecao"
+          >
+            <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
+            {modoSelecao ? "Cancelar Seleção" : "Selecionar"}
+          </Button>
+
+          {modoSelecao && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selecionarTodas}
+                data-testid="button-selecionar-todas"
+              >
+                {selecionadas.size === obras.length ? (
+                  <>
+                    <Square className="mr-1.5 h-3.5 w-3.5" />
+                    Desmarcar Todas
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
+                    Selecionar Todas
+                  </>
+                )}
+              </Button>
+
+              <Button
+                size="sm"
+                disabled={selecionadas.size === 0}
+                onClick={handleGerarCatalogo}
+                data-testid="button-gerar-catalogo"
+              >
+                <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+                Gerar Catálogo ({selecionadas.size})
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       {isColecionador && (
         <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
           {[
@@ -722,7 +964,14 @@ function PaginaObras({
         {isColecionador ? (
           <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} onCertificado={onCertificado} />
         ) : (
-          <AcervoSimples artistas={artistas} obras={obras} onCertificado={onCertificado} />
+          <AcervoSimples
+            artistas={artistas}
+            obras={obras}
+            onCertificado={onCertificado}
+            modoSelecao={modoSelecao}
+            selecionadas={selecionadas}
+            onToggleSelecao={toggleSelecao}
+          />
         )}
       </div>
     </div>
@@ -814,6 +1063,30 @@ function CertificadosPage({
   );
 }
 
+const catalogoPadrao: CatalogoItem = {
+  id: "cat-vida-no-campo",
+  titulo: "Vida no Campo",
+  descricao: "Paisagens rurais e cenas campestres de Camille Pissarro",
+  capa: capaCatalogoImg,
+  obras: [...obrasPissarro],
+  dataCriacao: "16 de fevereiro de 2026",
+};
+
+function carregarCatalogos(): CatalogoItem[] {
+  try {
+    const saved = localStorage.getItem("artflow_catalogos");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return [catalogoPadrao];
+}
+
+function salvarCatalogos(catalogos: CatalogoItem[]) {
+  localStorage.setItem("artflow_catalogos", JSON.stringify(catalogos));
+}
+
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const [perfil, setPerfil] = useState<string>("artista");
@@ -821,6 +1094,10 @@ export default function Dashboard() {
   const [filtro, setFiltro] = useState("todos");
   const [paginaAtiva, setPaginaAtiva] = useState("obras");
   const [obraCertificado, setObraCertificado] = useState<Obra | null>(null);
+  const [catalogos, setCatalogos] = useState<CatalogoItem[]>(carregarCatalogos);
+  const [catalogoVisualizado, setCatalogoVisualizado] = useState<CatalogoItem | null>(null);
+  const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
+  const [obrasSelecionadasCatalogo, setObrasSelecionadasCatalogo] = useState<Obra[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
@@ -834,6 +1111,31 @@ export default function Dashboard() {
   function handleSair() {
     localStorage.removeItem("artflow_profile");
     navigate("/");
+  }
+
+  function handleGerarCatalogo(obrasSel: Obra[]) {
+    setObrasSelecionadasCatalogo(obrasSel);
+    setModalCatalogoAberto(true);
+  }
+
+  function handleSalvarCatalogo(titulo: string, descricao: string, capa: string) {
+    const novo: CatalogoItem = {
+      id: `cat-${Date.now()}`,
+      titulo,
+      descricao,
+      capa,
+      obras: obrasSelecionadasCatalogo,
+      dataCriacao: new Date().toLocaleDateString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    };
+    const updated = [...catalogos, novo];
+    setCatalogos(updated);
+    salvarCatalogos(updated);
+    setObrasSelecionadasCatalogo([]);
+    setPaginaAtiva("catalogos-repo");
   }
 
   const sidebarStyle = {
@@ -855,6 +1157,7 @@ export default function Dashboard() {
             filtro={filtro}
             setFiltro={setFiltro}
             onCertificado={setObraCertificado}
+            onGerarCatalogo={handleGerarCatalogo}
           />
         );
       case "perfil-emissor":
@@ -884,6 +1187,13 @@ export default function Dashboard() {
           <CertificadosPage
             obras={obras}
             onCertificado={setObraCertificado}
+          />
+        );
+      case "catalogos-repo":
+        return (
+          <CatalogoPage
+            catalogos={catalogos}
+            onVerCatalogo={setCatalogoVisualizado}
           />
         );
       default:
@@ -939,6 +1249,12 @@ export default function Dashboard() {
         onClose={() => setModalAberto(false)}
       />
 
+      <NovoCatalogoModal
+        open={modalCatalogoAberto}
+        onClose={() => setModalCatalogoAberto(false)}
+        onSalvar={handleSalvarCatalogo}
+      />
+
       {obraCertificado && (() => {
         const dadosEmissor = carregarDadosEmissor();
         const emissorLinha = dadosEmissor ? formatarLinhaEmissor(dadosEmissor) : null;
@@ -954,6 +1270,13 @@ export default function Dashboard() {
           />
         );
       })()}
+
+      {catalogoVisualizado && (
+        <CatalogoDocumento
+          catalogo={catalogoVisualizado}
+          onClose={() => setCatalogoVisualizado(null)}
+        />
+      )}
     </SidebarProvider>
   );
 }
