@@ -97,12 +97,12 @@ import portraitImg from "@assets/7-portrait__1771200555858.png";
 import Placeholder from "@/pages/placeholder";
 import Bio from "@/pages/bio";
 import MapaObra from "@/pages/mapa-obra";
-import Exposicoes from "@/pages/exposicoes";
+import Exposicoes, { exposicoesIniciais, type Exposicao } from "@/pages/exposicoes";
 import Vendas from "@/pages/vendas";
-import Agenda from "@/pages/agenda";
+import RepresentacaoPage, { representacoesIniciais, type Representacao } from "@/pages/representacao";
 import Contatos from "@/pages/contatos";
 import Localizacao from "@/pages/localizacao";
-import Producao from "@/pages/producao";
+import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
@@ -173,7 +173,7 @@ const obrasColecionador: Obra[] = [
   { id: 21, inventarioId: "ID-M021", titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, dimensoes: "73,0 x 60,0 cm", imagem: portraitImg },
 ];
 
-const PREMIUM_PAGES = new Set(["exposicoes", "agenda", "mapa-obra"]);
+const PREMIUM_PAGES = new Set(["exposicoes", "representacao", "mapa-obra"]);
 
 const LIMITES_FREE = {
   obras: 5,
@@ -217,7 +217,7 @@ const menuArtista: MenuGroup[] = [
       { id: "perfil-emissor", title: "Perfil", icon: UserCog },
       { id: "bio", title: "Bio", icon: User },
       { id: "exposicoes", title: "Exposições", icon: Calendar, premium: true },
-      { id: "agenda", title: "Agenda", icon: Calendar, premium: true },
+      { id: "representacao", title: "Representação", icon: Building2, premium: true },
       { id: "mapa-obra", title: "Mapa da Obra", icon: Map, premium: true },
     ],
   },
@@ -281,7 +281,7 @@ const titulosPagina: Record<string, string> = {
   "perfil-emissor": "Perfil",
   bio: "Bio",
   exposicoes: "Exposições",
-  agenda: "Agenda",
+  representacao: "Representação",
   "mapa-obra": "Mapa da Obra",
   colecoes: "Coleções / Séries",
   "catalogos-repo": "Catálogo",
@@ -603,11 +603,17 @@ function NovaObraModal({
   onClose,
   colecoesLista,
   localizacoesLista,
+  tiragensLista,
+  exposicoesLista,
+  representacoesLista,
 }: {
   open: boolean;
   onClose: () => void;
   colecoesLista: string[];
   localizacoesLista: string[];
+  tiragensLista: Tiragem[];
+  exposicoesLista: string[];
+  representacoesLista: string[];
 }) {
   const [idInventario] = useState(gerarIdInventario);
   const [titulo, setTitulo] = useState("");
@@ -621,9 +627,17 @@ function NovaObraModal({
   const [edicao, setEdicao] = useState("");
   const [tiragem, setTiragem] = useState("");
   const [colecao, setColecao] = useState("");
+  const [pertenceATiragem, setPertenceATiragem] = useState("nao");
+  const [tiragemSelecionada, setTiragemSelecionada] = useState("");
+  const [numeracao, setNumeracao] = useState("");
+  const [tipoNumeracao, setTipoNumeracao] = useState("edicao");
+  const [exposicaoAssociada, setExposicaoAssociada] = useState("");
+  const [representacaoAssociada, setRepresentacaoAssociada] = useState("");
+
+  const tiragemAtual = tiragensLista.find((t) => t.id === tiragemSelecionada);
 
   function handleSalvar() {
-    alert("Obra salva com sucesso!");
+    alert("Obra salva com sucesso!" + (tiragemAtual ? ` Certificado gerado automaticamente para ${tiragemAtual.titulo} — ${tipoNumeracao === "pa" ? "P.A." : ""} ${numeracao}.` : ""));
     setTitulo("");
     setTecnica("");
     setAno("");
@@ -635,6 +649,12 @@ function NovaObraModal({
     setEdicao("");
     setTiragem("");
     setColecao("");
+    setPertenceATiragem("nao");
+    setTiragemSelecionada("");
+    setNumeracao("");
+    setTipoNumeracao("edicao");
+    setExposicaoAssociada("");
+    setRepresentacaoAssociada("");
     onClose();
   }
 
@@ -778,30 +798,109 @@ function NovaObraModal({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="edicao">Edição</Label>
-              <Input
-                id="edicao"
-                type="number"
-                placeholder="Ex: 1"
-                value={edicao}
-                onChange={(e) => setEdicao(e.target.value)}
-                data-testid="input-edicao"
-              />
-            </div>
+          <Separator />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="tiragem">Tiragem</Label>
-              <Input
-                id="tiragem"
-                type="number"
-                placeholder="Ex: 50"
-                value={tiragem}
-                onChange={(e) => setTiragem(e.target.value)}
-                data-testid="input-tiragem"
-              />
+          <div className="space-y-1.5">
+            <Label>Pertence a uma Tiragem?</Label>
+            <Select value={pertenceATiragem} onValueChange={(v) => { setPertenceATiragem(v); if (v === "nao") { setTiragemSelecionada(""); setNumeracao(""); } }}>
+              <SelectTrigger data-testid="select-pertence-tiragem">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nao">Não (Obra Única)</SelectItem>
+                <SelectItem value="sim">Sim (Múltiplo)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {pertenceATiragem === "sim" && (
+            <div className="space-y-4 rounded-md border border-border p-4">
+              <div className="space-y-1.5">
+                <Label>Selecionar Tiragem</Label>
+                <Select value={tiragemSelecionada} onValueChange={setTiragemSelecionada}>
+                  <SelectTrigger data-testid="select-tiragem-obra">
+                    <SelectValue placeholder="Selecione a tiragem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiragensLista.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.titulo} — {t.tecnicaReproducao}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {tiragemAtual && (
+                <div className="text-xs text-muted-foreground rounded-md bg-muted/50 p-3 space-y-1">
+                  <p>Edições: {tiragemAtual.quantidadeTotal} + {tiragemAtual.provasArtista} P.A.</p>
+                  <p>Técnica: {tiragemAtual.tecnicaReproducao} | {tiragemAtual.suporte} {tiragemAtual.gramatura}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Tipo de Numeração</Label>
+                  <Select value={tipoNumeracao} onValueChange={setTipoNumeracao}>
+                    <SelectTrigger data-testid="select-tipo-numeracao">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="edicao">Edição (ex: 1/{tiragemAtual?.quantidadeTotal || "N"})</SelectItem>
+                      <SelectItem value="pa">P.A. (ex: P.A. 1/{tiragemAtual?.provasArtista || "N"})</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="numeracao-obra">Numeração</Label>
+                  <Input
+                    id="numeracao-obra"
+                    placeholder={tipoNumeracao === "pa" ? `Ex: 1 (de ${tiragemAtual?.provasArtista || "?"})` : `Ex: 1 (de ${tiragemAtual?.quantidadeTotal || "?"})`}
+                    value={numeracao}
+                    onChange={(e) => setNumeracao(e.target.value)}
+                    data-testid="input-numeracao-obra"
+                  />
+                </div>
+              </div>
+
+              {tiragemAtual && numeracao && (
+                <div className="text-sm font-medium text-foreground bg-muted/50 rounded-md p-3" data-testid="text-preview-numeracao">
+                  Numeração: {tipoNumeracao === "pa" ? `P.A. ${numeracao}/${tiragemAtual.provasArtista}` : `${numeracao}/${tiragemAtual.quantidadeTotal}`}
+                </div>
+              )}
             </div>
+          )}
+
+          <Separator />
+
+          <div className="space-y-1.5">
+            <Label>Exposição Associada</Label>
+            <Select value={exposicaoAssociada} onValueChange={setExposicaoAssociada}>
+              <SelectTrigger data-testid="select-exposicao-obra">
+                <SelectValue placeholder="Nenhuma (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nenhuma">Nenhuma</SelectItem>
+                {exposicoesLista.map((e) => (
+                  <SelectItem key={e} value={e}>{e}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Representação Associada</Label>
+            <Select value={representacaoAssociada} onValueChange={setRepresentacaoAssociada}>
+              <SelectTrigger data-testid="select-representacao-obra">
+                <SelectValue placeholder="Nenhuma (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nenhuma">Nenhuma</SelectItem>
+                {representacoesLista.map((r) => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -1280,6 +1379,9 @@ export default function Dashboard() {
 
   const [colecoesLista, setColecoesLista] = useState<string[]>([...colecoesDisponiveis]);
   const [localizacoesLista, setLocalizacoesLista] = useState<string[]>([...localizacoesDisponiveis]);
+  const [tiragensLista, setTiragensLista] = useState<Tiragem[]>([...tiragensIniciais]);
+  const [exposicoesLista, setExposicoesLista] = useState<string[]>(exposicoesIniciais.map((e) => e.nome));
+  const [representacoesLista, setRepresentacoesLista] = useState<string[]>(representacoesIniciais.map((r) => r.nome));
 
   const handleAtivarPremium = useCallback(() => {
     localStorage.setItem("artflow_premium", "true");
@@ -1389,17 +1491,17 @@ export default function Dashboard() {
       case "mapa-obra":
         return <MapaObra />;
       case "exposicoes":
-        return <Exposicoes />;
+        return <Exposicoes onNovaExposicao={(nome) => setExposicoesLista((prev) => [...prev, nome])} />;
       case "vendas":
         return <Vendas />;
-      case "agenda":
-        return <Agenda />;
+      case "representacao":
+        return <RepresentacaoPage onNovaRepresentacao={(nome) => setRepresentacoesLista((prev) => [...prev, nome])} />;
       case "contatos":
         return <Contatos />;
       case "localizacao":
         return <Localizacao onNovaLocalizacao={(nome) => setLocalizacoesLista((prev) => [...prev, nome])} />;
       case "producao":
-        return <Producao />;
+        return <Producao onNovaTiragem={(tir) => setTiragensLista((prev) => [...prev, tir])} />;
       case "colecoes":
         return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
@@ -1509,6 +1611,9 @@ export default function Dashboard() {
         onClose={() => setModalAberto(false)}
         colecoesLista={colecoesLista}
         localizacoesLista={localizacoesLista}
+        tiragensLista={tiragensLista}
+        exposicoesLista={exposicoesLista}
+        representacoesLista={representacoesLista}
       />
 
       <NovoCatalogoModal
