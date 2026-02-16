@@ -35,20 +35,22 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas. ERP
 - `/dashboard` - Dashboard (com navegação interna via sidebar)
 
 ### Páginas Internas do Dashboard (Artista)
-- **Perfil:** Perfil (dados do emissor), Bio (detalhada), Exposições (com "+ Adicionar"), Representação (galerias parceiras), Mapa da Obra (interativo com pins)
-- **Acervo:** Obras (galeria + seleção + catálogos), Coleções/Séries, Catálogo, Produção e Tiragem
-- **Logística:** Localização (feiras, vendas, empréstimo, doação, leilão)
-- **Comercial:** Contatos, Vendas (dashboard financeiro)
-- **Arquivo:** Documentos (estilo Drive), Certificados (COA com impressão A4)
-- **Oportunidades (Premium):** Expo, Ocupação, Edital (com Match), Consignação, Feiras, Avaliação, Leilões Públicos, Caixa de Entrada
+- **Perfil:** Perfil (dados do emissor), Bio (detalhada), Mapa da Obra (geográfico com Leaflet)
+- **Acervo:** Obras (galeria + seleção + catálogos), Coleções/Séries, Catálogo, Exposições, Representação
+- **Logística:** Localização, Armazenamento (placeholder), Contatos
+- **Comercial:** Vendas (dashboard financeiro), Consignação, Avaliação
+- **Oportunidade (Premium):** Feiras, Convocatória, Seja um Tutor
+- **Mercado (Premium):** Venda sua Arte, Leilão Art Flow
+- **Suporte:** Caixa de Entrada, Tutores Online, Cursos, Suporte
 
 ### Páginas Internas do Dashboard (Colecionador)
-- **Perfil:** Perfil, Bio, Exposições, Representação, Mapa da Obra
-- **Acervo:** Artistas, Obras, Coleções/Séries, Catálogo, **Empréstimo / Doação**, **Leilões Públicos**
-- **Logística:** Localização (com tipos Empréstimo, Doação e Leilão)
-- **Comercial:** Contatos, Vendas
-- **Arquivo:** Documentos, Certificados (COA)
-- **Oportunidades (Premium):** Expo (sem prazo de inscrição), Consignação, Feiras, Avaliação, Caixa de Entrada (**sem** Ocupação, Edital e Leilões Públicos – Leilões movido para Acervo)
+- **Perfil:** Perfil, Bio, Mapa da Obra
+- **Acervo:** Artistas, Obras, Coleções/Séries, Catálogo, Exposições, Representação, Empréstimo/Doação, Leilões Públicos
+- **Logística:** Localização, Armazenamento, Contatos
+- **Comercial:** Vendas, Consignação, Avaliação
+- **Oportunidade (Premium):** Feiras, Convocatória, Seja um Tutor
+- **Mercado (Premium):** Venda sua Arte, Leilão Art Flow
+- **Suporte:** Caixa de Entrada, Tutores Online, Cursos, Suporte
 
 ## Perfis de Usuário
 - **Artista:** Vê acervo do Pissarro (3 obras com IDs ID-M001 a ID-M003), sidebar com menu ERP completo, Oportunidades com todas as sub-telas
@@ -100,6 +102,8 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas. ERP
 - **Catálogo → Leilões Públicos (Oportunidades):** Envio de catálogo para captação em leilões
 
 ## Alterações Recentes
+- 2026-02-16: Reestruturação da Sidebar - Nova hierarquia com 7 grupos (Perfil, Acervo, Logística, Comercial, Oportunidade, Mercado, Suporte). Exposições/Representação movidos de Perfil para Acervo. Consignação/Avaliação movidos de Oportunidades para Comercial (sem premium). Caixa de Entrada movida para Suporte (sem premium). Mapa da Obra sem premium. Novos placeholders: Armazenamento, Convocatória, Seja um Tutor, Venda sua Arte, Leilão Art Flow, Tutores Online, Cursos, Suporte. Novos grupos premium: Oportunidade e Mercado com coroa dourada.
+- 2026-02-16: Etapa 19 - Mapa da Obra geográfico real com Leaflet/OpenStreetMap, pins com coordenadas lat/lng reais, popups com miniatura/título/cidade/status, legenda interativa com filtros por categoria, FitBounds automático.
 - 2026-02-16: Etapa 18 - Reestruturação Leilões Públicos (Colecionador): módulo movido de Oportunidades para Acervo (abaixo de Empréstimo/Doação), nova página LeiloesPublicosAcervo seguindo padrão Empréstimo/Doação (busca de obras, tipo fixo "Leilão Público", dropdown de leiloeiros filtrado), Localização com tipo "leilao" e 2 seed leiloeiros (Bolsa de Arte SP, Soraia Cals RJ), Mapa da Obra com Pin Lilás para obras em leilão e popup "Em Leilão Público – [leiloeiro]", status automático "Em Leilão" na ficha técnica, notificação na Caixa de Entrada ao registrar
 - 2026-02-16: Integração Logística-Mapa: Pins Azul Claro (Empréstimo) e Rosa (Doação) no Mapa da Obra, mock data "View of Dresden" emprestada ao Museu do Ipiranga para Colecionador, geolocalização automática por coordenadas do Local de Destino, sincronização instantânea entre Empréstimo/Doação e Mapa da Obra
 - 2026-02-16: Refinamentos de Logística e Visualização: Empréstimo/Doação com campo obrigatório "Local de Destino" (dropdown dinâmico filtrado por tipo), Coleções com botão "Visualizar" (ficha técnica completa + Imprimir Coleção), Exposições segmentadas por perfil (Colecionador: "Aberta ao Público"/"Em Breve", Artista: "Inscrições Abertas"), atualização automática de localização ao registrar empréstimo

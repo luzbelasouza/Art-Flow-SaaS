@@ -80,6 +80,12 @@ import {
   Zap,
   HandHeart,
   Gavel,
+  Archive,
+  Megaphone,
+  GraduationCap,
+  Store,
+  Video,
+  HelpCircle,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -178,7 +184,7 @@ const obrasColecionador: Obra[] = [
   { id: 21, inventarioId: "ID-M021", titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, dimensoes: "73,0 x 60,0 cm", imagem: portraitImg },
 ];
 
-const PREMIUM_PAGES = new Set(["exposicoes", "representacao", "mapa-obra"]);
+const PREMIUM_PAGES = new Set<string>([]);
 
 const LIMITES_FREE = {
   obras: 5,
@@ -215,89 +221,84 @@ interface MenuGroup {
   premiumGroup?: boolean;
 }
 
-const menuArtista: MenuGroup[] = [
+const menuBase: MenuGroup[] = [
   {
     label: "Perfil",
     items: [
       { id: "perfil-emissor", title: "Perfil", icon: UserCog },
       { id: "bio", title: "Bio", icon: User },
-      { id: "exposicoes", title: "Exposições", icon: Calendar, premium: true },
-      { id: "representacao", title: "Representação", icon: Building2, premium: true },
-      { id: "mapa-obra", title: "Mapa da Obra", icon: Map, premium: true },
+      { id: "mapa-obra", title: "Mapa da Obra", icon: Map },
     ],
   },
   {
     label: "Acervo",
     items: [
+      { id: "artistas", title: "Artistas", icon: Palette },
       { id: "obras", title: "Obras", icon: Image },
       { id: "colecoes", title: "Coleções / Séries", icon: Layers },
       { id: "catalogos-repo", title: "Catálogo", icon: BookOpen },
-      { id: "producao", title: "Produção e Tiragem", icon: Printer },
+      { id: "exposicoes", title: "Exposições", icon: Calendar },
+      { id: "representacao", title: "Representação", icon: Building2 },
+      { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart },
+      { id: "leiloes-acervo", title: "Leilões Públicos", icon: Gavel },
     ],
   },
   {
     label: "Logística",
     items: [
       { id: "localizacao", title: "Localização", icon: Navigation },
+      { id: "armazenamento", title: "Armazenamento", icon: Archive },
+      { id: "contatos", title: "Contatos", icon: Users },
     ],
   },
   {
     label: "Comercial",
     items: [
-      { id: "contatos", title: "Contatos", icon: Users },
       { id: "vendas", title: "Vendas", icon: BarChart3 },
+      { id: "oport-consignacao", title: "Consignação", icon: Tag },
+      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag },
     ],
   },
   {
-    label: "Arquivo",
-    items: [
-      { id: "documentos", title: "Documentos", icon: FileText },
-      { id: "certificados", title: "Certificados (COA)", icon: ShieldCheck },
-    ],
-  },
-  {
-    label: "Oportunidades",
+    label: "Oportunidade",
     premiumGroup: true,
     items: [
-      { id: "oport-expo", title: "Expo", icon: Calendar, premium: true },
-      { id: "oport-ocupacao", title: "Ocupação", icon: Building2, premium: true },
-      { id: "oport-edital", title: "Edital", icon: Palette, premium: true },
-      { id: "oport-consignacao", title: "Consignação", icon: Tag, premium: true },
       { id: "oport-feiras", title: "Feiras", icon: Globe, premium: true },
-      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag, premium: true },
-      { id: "oport-leiloes", title: "Leilões Públicos", icon: Zap, premium: true },
-      { id: "oport-caixa", title: "Caixa de Entrada", icon: MessageSquare, premium: true },
+      { id: "convocatoria", title: "Convocatória", icon: Megaphone, premium: true },
+      { id: "seja-tutor", title: "Seja um Tutor", icon: GraduationCap, premium: true },
+    ],
+  },
+  {
+    label: "Mercado",
+    premiumGroup: true,
+    items: [
+      { id: "venda-arte", title: "Venda sua Arte", icon: Store, premium: true },
+      { id: "leilao-artflow", title: "Leilão Art Flow", icon: Gavel, premium: true },
+    ],
+  },
+  {
+    label: "Suporte",
+    items: [
+      { id: "oport-caixa", title: "Caixa de Entrada", icon: MessageSquare },
+      { id: "tutores-online", title: "Tutores Online", icon: Video },
+      { id: "cursos", title: "Cursos", icon: GraduationCap },
+      { id: "suporte", title: "Suporte", icon: HelpCircle },
     ],
   },
 ];
 
 function buildMenu(perfil: string): MenuGroup[] {
-  const base = menuArtista.map((grupo) => ({ ...grupo, items: [...grupo.items] }));
-  if (perfil === "colecionador") {
+  const base = menuBase.map((grupo) => ({ ...grupo, items: [...grupo.items] }));
+
+  if (perfil === "artista") {
     const acervoIdx = base.findIndex((g) => g.label === "Acervo");
     if (acervoIdx !== -1) {
-      const obrasIdx = base[acervoIdx].items.findIndex((i) => i.id === "obras");
-      if (obrasIdx >= 0) {
-        base[acervoIdx].items.splice(obrasIdx, 0, { id: "artistas", title: "Artistas", icon: Palette });
-      } else {
-        base[acervoIdx].items.unshift({ id: "artistas", title: "Artistas", icon: Palette });
-      }
-      const producaoIdx = base[acervoIdx].items.findIndex((i) => i.id === "producao");
-      if (producaoIdx >= 0) {
-        base[acervoIdx].items[producaoIdx] = { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart };
-      }
-      const emprestimoIdx = base[acervoIdx].items.findIndex((i) => i.id === "emprestimo-doacao");
-      if (emprestimoIdx >= 0) {
-        base[acervoIdx].items.splice(emprestimoIdx + 1, 0, { id: "leiloes-acervo", title: "Leilões Públicos", icon: Gavel });
-      }
-    }
-    const oportunidadesIdx = base.findIndex((g) => g.label === "Oportunidades");
-    if (oportunidadesIdx !== -1) {
-      base[oportunidadesIdx].items = base[oportunidadesIdx].items.filter(
-        (i) => i.id !== "oport-ocupacao" && i.id !== "oport-edital" && i.id !== "oport-leiloes"
+      base[acervoIdx].items = base[acervoIdx].items.filter(
+        (i) => i.id !== "artistas" && i.id !== "emprestimo-doacao" && i.id !== "leiloes-acervo"
       );
     }
   }
+
   return base;
 }
 
@@ -315,6 +316,7 @@ const titulosPagina: Record<string, string> = {
   "emprestimo-doacao": "Empréstimo / Doação",
   "leiloes-acervo": "Leilões Públicos",
   localizacao: "Localização",
+  armazenamento: "Armazenamento",
   contatos: "Contatos",
   vendas: "Vendas",
   documentos: "Documentos",
@@ -328,6 +330,13 @@ const titulosPagina: Record<string, string> = {
   "oport-avaliacao": "Avaliação",
   "oport-leiloes": "Leilões Públicos",
   "oport-caixa": "Caixa de Entrada",
+  convocatoria: "Convocatória",
+  "seja-tutor": "Seja um Tutor",
+  "venda-arte": "Venda sua Arte",
+  "leilao-artflow": "Leilão Art Flow",
+  "tutores-online": "Tutores Online",
+  cursos: "Cursos",
+  suporte: "Suporte",
 };
 
 function UpsellModal({
@@ -1863,34 +1872,39 @@ export default function Dashboard() {
             onVerCatalogo={setCatalogoVisualizado}
           />
         );
-      case "oport-expo":
-      case "oport-ocupacao":
-      case "oport-edital":
       case "oport-consignacao":
-      case "oport-feiras":
+        return <ConsignacaoPage catalogos={catalogos} />;
       case "oport-avaliacao":
-      case "oport-leiloes":
+        return <AvaliacaoPage />;
       case "oport-caixa":
-        if (!premium) {
-          return <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
-        }
-        switch (paginaAtiva) {
-          case "oport-expo": return <ExpoPage perfil={perfil} />;
-          case "oport-ocupacao": return <OcupacaoPage />;
-          case "oport-edital": return <EditalPage tecnicaArtista="Óleo sobre tela" />;
-          case "oport-consignacao": return <ConsignacaoPage catalogos={catalogos} />;
-          case "oport-feiras": return <FeirasPage />;
-          case "oport-avaliacao": return <AvaliacaoPage />;
-          case "oport-leiloes": return <LeiloesPage catalogos={catalogos} />;
-          case "oport-caixa": return <CaixaEntradaPage onVisualizarCatalogo={(catalogoId) => {
-            const cat = catalogos.find(c => c.id === catalogoId);
-            if (cat) {
-              setCatalogoVisualizado(cat);
-              setPaginaAtiva("catalogos-repo");
-            }
-          }} />;
-          default: return <Placeholder page={paginaAtiva} />;
-        }
+        return <CaixaEntradaPage onVisualizarCatalogo={(catalogoId) => {
+          const cat = catalogos.find(c => c.id === catalogoId);
+          if (cat) {
+            setCatalogoVisualizado(cat);
+            setPaginaAtiva("catalogos-repo");
+          }
+        }} />;
+      case "oport-feiras":
+        return premium ? <FeirasPage /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "convocatoria":
+        return premium ? <ExpoPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "seja-tutor":
+      case "venda-arte":
+      case "leilao-artflow":
+        return premium ? <Placeholder page={paginaAtiva} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "tutores-online":
+      case "cursos":
+      case "suporte":
+      case "armazenamento":
+        return <Placeholder page={paginaAtiva} />;
+      case "oport-expo":
+        return premium ? <ExpoPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "oport-ocupacao":
+        return premium ? <OcupacaoPage /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "oport-edital":
+        return premium ? <EditalPage tecnicaArtista="Óleo sobre tela" /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
+      case "oport-leiloes":
+        return premium ? <LeiloesPage catalogos={catalogos} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       default:
         return <Placeholder page={paginaAtiva} />;
     }

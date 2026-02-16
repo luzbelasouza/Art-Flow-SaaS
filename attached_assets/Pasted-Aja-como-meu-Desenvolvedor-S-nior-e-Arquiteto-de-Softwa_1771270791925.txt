@@ -1,0 +1,86 @@
+Aja como meu Desenvolvedor Sênior e Arquiteto de Software. Vamos iniciar a reestruturação global do 'Art Flow' para suportar três perfis de usuário: Artista, Colecionador e Galeria.
+
+REGRAS CRÍTICAS DE EXECUÇÃO:
+
+Preservação: Mantenha todas as funcionalidades de gestão de obras, catálogos, certificados e logística que já estão aprovadas e funcionais. Não corrompa o código existente.
+
+Integridade: Realize testes de renderização após cada alteração na sidebar para garantir que não existam erros de navegação.
+
+Consistência: Não siga para a próxima etapa sem garantir que a lógica de visualização por perfil está 100% correta.
+
+SUA TAREFA: REFORMULAÇÃO DA BARRA LATERAL (SIDEBAR)
+Reorganize o menu lateral conforme a nova hierarquia, aplicando as seguintes regras de visibilidade e acesso:
+
+1. Grupo PERFIL:
+
+Perfil (Todos)
+
+Bio (Todos)
+
+Mapa da Obra (Todos | Selo Premium (P))
+
+2. Grupo ACERVO:
+
+Artistas (Apenas Colecionador e Galeria)
+
+Obras (Todos)
+
+Coleções/Séries (Todos)
+
+Catálogo (Todos)
+
+Exposições (Todos)
+
+Representação (Apenas Artista | Selo Premium (P))
+
+Empréstimo/Doação (Apenas Colecionador | Selo Premium (P))
+
+Leilões Públicos (Apenas Colecionador e Galeria | Selo Premium (P))
+
+3. Grupo LOGÍSTICA:
+
+Localização (Todos)
+
+Armazenamento (Todos | Selo Premium (P))
+
+Contatos (Todos)
+
+4. Grupo COMERCIAL (Todo o grupo é Premium (P)):
+
+Vendas (Todos)
+
+Consignação (Apenas Artista e Colecionador)
+
+Avaliação (Apenas Colecionador e Galeria)
+
+5. Grupo OPORTUNIDADE (Todo o grupo é Premium (P)):
+
+Feiras (Todos)
+
+Convocatória (Apenas Artista)
+
+Seja um Tutor (Apenas Colecionador e Galeria)
+
+6. Grupo MERCADO (Todo o grupo é Premium (P)):
+
+Venda sua Arte (Apenas Artista)
+
+Leilão Art Flow (Apenas Colecionador e Galeria)
+
+7. Grupo SUPORTE:
+
+Caixa de Entrada (Todos)
+
+Tutores Online (Apenas Artista | Selo Premium (P))
+
+Cursos (Apenas Artista | Selo Premium (P))
+
+Suporte (Todos - Chat de Chamados)
+
+IMPLEMENTAÇÃO TÉCNICA:
+
+Utilize ícones elegantes e discretos para sinalizar o status (P).
+
+Garanta que, ao trocar o tipo de perfil nas configurações, a sidebar se atualize instantaneamente com as abas corretas.
+
+Se um usuário clicar em uma aba (P) sem ser premium, exiba o modal de upgrade que já criamos.
