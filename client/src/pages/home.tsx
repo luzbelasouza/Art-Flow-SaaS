@@ -8,7 +8,12 @@ import {
   Building2,
   Check,
   ArrowRight,
+  ShieldCheck,
+  BarChart3,
+  Layers,
+  Printer,
 } from "lucide-react";
+import dashboardPreviewImg from "@assets/deashboard_1771254371882.png";
 
 function Header() {
   return (
@@ -48,32 +53,47 @@ function HeroSection() {
           className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-tight max-w-3xl mx-auto"
           data-testid="text-hero-title"
         >
-          Sua Solução Completa de Gestão de Arte
+          Sua gestão de arte completa em um só lugar
         </h1>
         <p
           className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           data-testid="text-hero-subtitle"
         >
-          Feito para artistas, colecionadores e galerias. Organize seu acervo e
-          impulsione suas vendas.
+          Feito para artistas, colecionadores e galerias. Organize seu acervo,
+          emita certificados e impulsione suas vendas.
         </p>
-        <div className="mt-10">
+        <div className="mt-10 flex items-center justify-center gap-3 flex-wrap">
           <Link href="/cadastro">
             <Button size="lg" data-testid="button-hero-cta">
               Começar Agora
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
+          <Link href="/login">
+            <Button size="lg" variant="outline" data-testid="button-hero-login">
+              Já tenho conta
+            </Button>
+          </Link>
         </div>
 
         <div
-          className="mt-16 mx-auto max-w-4xl rounded-md border bg-muted/40 flex items-center justify-center"
-          style={{ aspectRatio: "16/9" }}
-          data-testid="placeholder-dashboard-image"
+          className="mt-16 mx-auto max-w-5xl"
+          data-testid="container-dashboard-preview"
         >
-          <span className="text-muted-foreground text-sm">
-            Imagem do Dashboard
-          </span>
+          <p className="text-sm font-medium text-muted-foreground mb-4 tracking-wide uppercase">
+            Veja como funciona
+          </p>
+          <div className="rounded-md border border-border shadow-sm overflow-hidden bg-background">
+            <img
+              src={dashboardPreviewImg}
+              alt="Preview do Dashboard Art Flow — gestão de acervo de arte"
+              className="w-full h-auto"
+              data-testid="img-dashboard-preview"
+            />
+          </div>
+          <p className="mt-4 text-sm text-muted-foreground max-w-lg mx-auto" data-testid="text-preview-caption">
+            Gerencie obras, emita certificados de autenticidade e acompanhe todo o seu acervo em um painel intuitivo.
+          </p>
         </div>
       </div>
     </section>
@@ -85,19 +105,19 @@ const audiences = [
     icon: Palette,
     title: "Para Artistas",
     description:
-      "Controle sua produção e gere certificados de autenticidade.",
+      "Controle sua produção, emita certificados de autenticidade e conecte-se ao mercado.",
   },
   {
     icon: BookOpen,
     title: "Para Colecionadores",
     description:
-      "Preserve seu patrimônio e rastreie a valorização.",
+      "As mesmas ferramentas do artista para gerenciar, catalogar e valorizar seu acervo.",
   },
   {
     icon: Building2,
     title: "Para Galerias",
     description:
-      "Gerencie exposições, catálogo de artistas e vendas.",
+      "Gerencie exposições, catálogo de artistas e vendas em um só lugar.",
   },
 ];
 
@@ -131,6 +151,69 @@ function AudienceSection() {
               <p className="mt-3 text-muted-foreground leading-relaxed">
                 {item.description}
               </p>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const features = [
+  {
+    icon: Layers,
+    title: "Gestão de Acervo",
+    description: "Cadastre obras com ID de Inventário, técnica, dimensões e localização. Organize por coleções e séries.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Certificados de Autenticidade",
+    description: "Emita COAs profissionais com dados do emissor, impressão A4 e repositório automático.",
+  },
+  {
+    icon: Printer,
+    title: "Catálogos Dinâmicos",
+    description: "Selecione obras e gere catálogos com capa personalizada, pronto para envio a galerias e leilões.",
+  },
+  {
+    icon: BarChart3,
+    title: "Vendas e Avaliação",
+    description: "Acompanhe vendas, solicite avaliações de mercado e envie obras para captação em leilões públicos.",
+  },
+];
+
+function FeaturesSection() {
+  return (
+    <section className="w-full bg-background">
+      <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+        <h2
+          className="text-3xl md:text-4xl font-semibold tracking-tight text-center text-foreground"
+          data-testid="text-features-title"
+        >
+          Tudo que você precisa
+        </h2>
+        <p className="mt-4 text-center text-muted-foreground text-lg max-w-xl mx-auto">
+          Ferramentas profissionais para organizar, proteger e valorizar sua arte.
+        </p>
+
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {features.map((item, idx) => (
+            <Card
+              key={idx}
+              className="p-6 flex items-start gap-4"
+              data-testid={`card-feature-${idx}`}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 flex-shrink-0">
+                <item.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
             </Card>
           ))}
         </div>
@@ -308,6 +391,7 @@ export default function Home() {
       <main className="flex-1">
         <HeroSection />
         <AudienceSection />
+        <FeaturesSection />
         <PricingSection />
       </main>
       <Footer />
