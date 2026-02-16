@@ -1,4 +1,11 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+
+import colheitaImg from "@assets/colheita_1771198582489.png";
+import contextImg from "@assets/1-context_1771204595709.jpg";
+import singapureImg from "@assets/2-Singapure_1771204595713.jpg";
 
 interface Pin {
   id: string;
@@ -8,6 +15,8 @@ interface Pin {
   corBg: string;
   top: string;
   left: string;
+  imagem: string;
+  descricao: string;
 }
 
 const pins: Pin[] = [
@@ -19,6 +28,8 @@ const pins: Pin[] = [
     corBg: "bg-emerald-500/20",
     top: "58%",
     left: "62%",
+    imagem: colheitaImg,
+    descricao: "Colheita das Maçãs – Vendida para João Vicente",
   },
   {
     id: "sp",
@@ -28,6 +39,8 @@ const pins: Pin[] = [
     corBg: "bg-rose-500/20",
     top: "55%",
     left: "52%",
+    imagem: contextImg,
+    descricao: "Exposição temporária – Galeria Graphitte",
   },
   {
     id: "ctb",
@@ -37,6 +50,8 @@ const pins: Pin[] = [
     corBg: "bg-amber-400/20",
     top: "62%",
     left: "48%",
+    imagem: singapureImg,
+    descricao: "Jovens Camponesas – Consignada para evento",
   },
 ];
 
@@ -47,6 +62,10 @@ const legenda = [
 ];
 
 export default function MapaObra() {
+  const [pinSelecionado, setPinSelecionado] = useState<string | null>(null);
+
+  const pinAtivo = pins.find((p) => p.id === pinSelecionado);
+
   return (
     <div className="flex-1 overflow-hidden relative" data-testid="mapa-container">
       <div className="absolute inset-0 bg-muted/40">
@@ -76,13 +95,14 @@ export default function MapaObra() {
           </svg>
 
           {pins.map((pin) => (
-            <div
+            <button
               key={pin.id}
-              className="absolute flex flex-col items-center"
+              className="absolute flex flex-col items-center cursor-pointer"
               style={{ top: pin.top, left: pin.left, transform: "translate(-50%, -50%)" }}
+              onClick={() => setPinSelecionado(pinSelecionado === pin.id ? null : pin.id)}
               data-testid={`pin-${pin.id}`}
             >
-              <div className={`relative flex items-center justify-center`}>
+              <div className="relative flex items-center justify-center">
                 <div className={`absolute h-8 w-8 rounded-full ${pin.corBg} animate-ping`} style={{ animationDuration: "2.5s" }} />
                 <div className={`h-4 w-4 rounded-full ${pin.cor} ring-2 ring-background shadow-lg relative z-10`} />
               </div>
@@ -90,10 +110,42 @@ export default function MapaObra() {
                 <p className="text-xs font-medium text-foreground whitespace-nowrap">{pin.cidade}</p>
                 <p className="text-[10px] text-muted-foreground whitespace-nowrap">{pin.status}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
+
+      {pinAtivo && (
+        <Card
+          className="absolute top-5 left-5 w-72 bg-background/95 backdrop-blur-sm shadow-lg"
+          data-testid="popup-pin"
+        >
+          <img
+            src={pinAtivo.imagem}
+            alt={pinAtivo.cidade}
+            className="h-36 w-full object-cover rounded-t-md"
+            data-testid="popup-pin-img"
+          />
+          <div className="p-4 space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold text-foreground text-sm" data-testid="popup-pin-cidade">
+                {pinAtivo.cidade}
+              </h3>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setPinSelecionado(null)}
+                data-testid="popup-pin-fechar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground" data-testid="popup-pin-descricao">
+              {pinAtivo.descricao}
+            </p>
+          </div>
+        </Card>
+      )}
 
       <Card
         className="absolute bottom-5 right-5 p-4 space-y-2.5 bg-background/95 backdrop-blur-sm"

@@ -76,6 +76,12 @@ import portraitImg from "@assets/7-portrait__1771200555858.png";
 import Placeholder from "@/pages/placeholder";
 import Bio from "@/pages/bio";
 import MapaObra from "@/pages/mapa-obra";
+import Exposicoes from "@/pages/exposicoes";
+import Vendas from "@/pages/vendas";
+import Agenda from "@/pages/agenda";
+import Contatos from "@/pages/contatos";
+import Localizacao from "@/pages/localizacao";
+import Producao from "@/pages/producao";
 
 const perfilLabels: Record<string, string> = {
   artista: "Artista",
@@ -655,27 +661,36 @@ export default function Dashboard() {
   const mostrarBotaoNovaObra = paginaAtiva === "obras";
 
   function renderConteudo() {
-    if (paginaAtiva === "obras") {
-      return (
-        <PaginaObras
-          perfil={perfil}
-          artistas={artistas}
-          obras={obras}
-          filtro={filtro}
-          setFiltro={setFiltro}
-        />
-      );
+    switch (paginaAtiva) {
+      case "obras":
+        return (
+          <PaginaObras
+            perfil={perfil}
+            artistas={artistas}
+            obras={obras}
+            filtro={filtro}
+            setFiltro={setFiltro}
+          />
+        );
+      case "bio":
+        return <Bio />;
+      case "mapa-obra":
+        return <MapaObra />;
+      case "exposicoes":
+        return <Exposicoes />;
+      case "vendas":
+        return <Vendas />;
+      case "agenda":
+        return <Agenda />;
+      case "contatos":
+        return <Contatos />;
+      case "localizacao":
+        return <Localizacao />;
+      case "producao":
+        return <Producao />;
+      default:
+        return <Placeholder page={paginaAtiva} />;
     }
-    if (paginaAtiva === "bio") {
-      return <Bio />;
-    }
-    if (paginaAtiva === "mapa-obra") {
-      return <MapaObra />;
-    }
-    if (placeholderPages.includes(paginaAtiva)) {
-      return <Placeholder page={paginaAtiva} />;
-    }
-    return <Placeholder page={paginaAtiva} />;
   }
 
   return (
