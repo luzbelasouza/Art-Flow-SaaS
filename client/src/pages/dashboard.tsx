@@ -82,6 +82,13 @@ import Agenda from "@/pages/agenda";
 import Contatos from "@/pages/contatos";
 import Localizacao from "@/pages/localizacao";
 import Producao from "@/pages/producao";
+import Colecoes from "@/pages/colecoes";
+import Documentos from "@/pages/documentos";
+
+const colecoesObras: Record<number, string> = {
+  2: "Vida no Campo: A Série de Pontoise",
+  3: "Vida no Campo: A Série de Pontoise",
+};
 
 const perfilLabels: Record<string, string> = {
   artista: "Artista",
@@ -290,6 +297,7 @@ function AppSidebar({
 
 function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
+  const colecao = colecoesObras[obra.id];
 
   return (
     <Card className="flex flex-col" data-testid={`card-obra-${obra.id}`}>
@@ -312,6 +320,18 @@ function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
         <p className="mt-2 text-xs text-muted-foreground">
           Técnica: {obra.tecnica} | Ano: {obra.ano}
         </p>
+
+        {colecao && (
+          <div className="mt-2 flex items-center gap-1.5">
+            <Layers className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span
+              className="text-xs text-muted-foreground truncate"
+              data-testid={`text-colecao-obra-${obra.id}`}
+            >
+              {colecao}
+            </span>
+          </div>
+        )}
 
         <Separator className="my-4" />
 
@@ -688,6 +708,10 @@ export default function Dashboard() {
         return <Localizacao />;
       case "producao":
         return <Producao />;
+      case "colecoes":
+        return <Colecoes />;
+      case "documentos":
+        return <Documentos />;
       default:
         return <Placeholder page={paginaAtiva} />;
     }
