@@ -1695,11 +1695,17 @@ export default function Dashboard() {
           case "oport-expo": return <ExpoPage />;
           case "oport-ocupacao": return <OcupacaoPage />;
           case "oport-edital": return <EditalPage tecnicaArtista="Óleo sobre tela" />;
-          case "oport-consignacao": return <ConsignacaoPage />;
+          case "oport-consignacao": return <ConsignacaoPage catalogos={catalogos} />;
           case "oport-feiras": return <FeirasPage />;
           case "oport-avaliacao": return <AvaliacaoPage />;
           case "oport-leiloes": return <LeiloesPage catalogos={catalogos} />;
-          case "oport-caixa": return <CaixaEntradaPage />;
+          case "oport-caixa": return <CaixaEntradaPage onVisualizarCatalogo={(catalogoId) => {
+            const cat = catalogos.find(c => c.id === catalogoId);
+            if (cat) {
+              setCatalogoVisualizado(cat);
+              setPaginaAtiva("catalogos-repo");
+            }
+          }} />;
           default: return <Placeholder page={paginaAtiva} />;
         }
       default:

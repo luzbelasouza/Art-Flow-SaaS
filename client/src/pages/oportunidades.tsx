@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Crown,
   Sparkles,
@@ -29,6 +30,7 @@ import {
   Check,
   AlertCircle,
   Lock,
+  Eye,
 } from "lucide-react";
 
 interface Obra {
@@ -382,37 +384,245 @@ const galerias = [
   },
 ];
 
-export function ConsignacaoPage() {
+export function ConsignacaoPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) {
+  const [galeriasSelecionadas, setGaleriasSelecionadas] = useState<Set<number>>(new Set());
+  const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
+  const [catalogoSelecionado, setCatalogoSelecionado] = useState<CatalogoItemLeilao | null>(null);
+  const [termosAceitos, setTermosAceitos] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  const [catalogoEnviado, setCatalogoEnviado] = useState<string | null>(null);
+  const [qtdGaleriasEnviadas, setQtdGaleriasEnviadas] = useState(0);
+  const { toast } = useToast();
+
+  function toggleGaleria(id: number) {
+    setGaleriasSelecionadas((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selecionarTodas() {
+    if (galeriasSelecionadas.size === galerias.length) {
+      setGaleriasSelecionadas(new Set());
+    } else {
+      setGaleriasSelecionadas(new Set(galerias.map((g) => g.id)));
+    }
+  }
+
+  function handleAbrirModalCatalogo() {
+    setCatalogoSelecionado(null);
+    setTermosAceitos(false);
+    setModalCatalogoAberto(true);
+  }
+
+  function handleConfirmarEnvio() {
+    if (!catalogoSelecionado || !termosAceitos) return;
+    const nomesGalerias = galerias
+      .filter((g) => galeriasSelecionadas.has(g.id))
+      .map((g) => g.nome);
+    const agora = new Date();
+    salvarEnvio({
+      id: `envio-consignacao-${Date.now()}`,
+      tipo: "Consignação",
+      destinatarios: nomesGalerias,
+      catalogo: catalogoSelecionado.titulo,
+      catalogoId: catalogoSelecionado.id,
+      data: agora.toLocaleDateString("pt-BR"),
+      hora: agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      qtd: galeriasSelecionadas.size,
+    });
+    setCatalogoEnviado(catalogoSelecionado.titulo);
+    setQtdGaleriasEnviadas(galeriasSelecionadas.size);
+    setEnviado(true);
+    setModalCatalogoAberto(false);
+    setGaleriasSelecionadas(new Set());
+    toast({
+      title: "Catálogo enviado com sucesso!",
+      description: "O registro está disponível na sua Caixa de Entrada.",
+    });
+  }
+
+  const todasSelected = galeriasSelecionadas.size === galerias.length;
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <p className="text-sm text-muted-foreground mb-4" data-testid="text-consignacao-desc">
-          Diretório de galerias que aceitam acervo consignado.
+      <div className="max-w-3xl mx-auto space-y-6">
+        <p className="text-sm text-muted-foreground" data-testid="text-consignacao-desc">
+          Diretório de galerias que aceitam acervo consignado. Selecione as galerias e envie seu catálogo.
         </p>
-        {galerias.map((g) => (
-          <Card key={g.id} className="p-5" data-testid={`card-consignacao-${g.id}`}>
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="space-y-1.5 min-w-0">
-                <h3 className="text-sm font-semibold text-foreground">{g.nome}</h3>
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  {g.local}
-                </p>
-                <p className="text-xs text-muted-foreground">Comissão: {g.comissao}</p>
-                <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                  {g.aceita.map((t) => (
-                    <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
-                  ))}
+
+        {enviado && catalogoEnviado && (
+          <div className="rounded-md p-3 flex items-center gap-2" style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)" }} data-testid="alert-consignacao-enviada">
+            <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#16a34a" }} />
+            <span className="text-xs" style={{ color: "#16a34a" }}>
+              Catálogo "{catalogoEnviado}" enviado com sucesso para {qtdGaleriasEnviadas} {qtdGaleriasEnviadas === 1 ? "galeria" : "galerias"}!
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-foreground">Selecione as Galerias</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={selecionarTodas}
+              data-testid="button-selecionar-todas-galerias"
+            >
+              <Check className="mr-1.5 h-3 w-3" />
+              {todasSelected ? "Desmarcar Todas" : "Selecionar Todas"}
+            </Button>
+          </div>
+
+          {galerias.map((g) => {
+            const sel = galeriasSelecionadas.has(g.id);
+            return (
+              <Card
+                key={g.id}
+                className={`p-5 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
+                onClick={() => toggleGaleria(g.id)}
+                data-testid={`card-consignacao-${g.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`h-5 w-5 rounded-sm border flex items-center justify-center flex-shrink-0 mt-0.5 ${sel ? "bg-primary border-primary" : "border-border"}`}>
+                    {sel && <Check className="h-3 w-3 text-primary-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="space-y-1.5 min-w-0">
+                        <h3 className="text-sm font-semibold text-foreground">{g.nome}</h3>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {g.local}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Comissão: {g.comissao}</p>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                          {g.aceita.map((t) => (
+                            <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Separator />
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground" data-testid="text-enviar-consignacao-titulo">
+            Enviar para Consignação
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Selecione as galerias acima e envie um catálogo do seu acervo para avaliação.
+          </p>
+
+          <Button
+            disabled={galeriasSelecionadas.size === 0}
+            onClick={handleAbrirModalCatalogo}
+            data-testid="button-enviar-catalogo-consignacao"
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Enviar Catálogo
+            {galeriasSelecionadas.size > 0 && ` (${galeriasSelecionadas.size} ${galeriasSelecionadas.size === 1 ? "galeria" : "galerias"})`}
+          </Button>
+        </div>
+      </div>
+
+      {modalCatalogoAberto && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" data-testid="modal-selecao-catalogo-consignacao">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-foreground">Selecione um Catálogo</h2>
+              <p className="text-xs text-muted-foreground">
+                Escolha o catálogo que será enviado para {galeriasSelecionadas.size} {galeriasSelecionadas.size === 1 ? "galeria selecionada" : "galerias selecionadas"}.
+              </p>
+            </div>
+
+            {catalogos.length === 0 ? (
+              <div className="rounded-md p-4 text-center" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
+                <p className="text-xs text-muted-foreground">Nenhum catálogo criado ainda. Crie um catálogo na aba Catálogo antes de enviar.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {catalogos.map((cat) => {
+                  const sel = catalogoSelecionado?.id === cat.id;
+                  return (
+                    <Card
+                      key={cat.id}
+                      className={`p-3 flex items-center gap-3 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
+                      onClick={() => setCatalogoSelecionado(cat)}
+                      data-testid={`card-catalogo-consignacao-${cat.id}`}
+                    >
+                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center flex-shrink-0 ${sel ? "bg-primary border-primary" : "border-border"}`}>
+                        {sel && <Check className="h-3 w-3 text-primary-foreground" />}
+                      </div>
+                      <img
+                        src={cat.capa}
+                        alt={cat.titulo}
+                        className="h-14 w-10 object-cover rounded-sm flex-shrink-0 border border-border"
+                        data-testid={`img-capa-catalogo-consignacao-${cat.id}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{cat.titulo}</p>
+                        <p className="text-xs text-muted-foreground truncate">{cat.descricao}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{cat.obras.length} {cat.obras.length === 1 ? "obra" : "obras"} — {cat.dataCriacao}</p>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {catalogoSelecionado && (
+              <div className="space-y-3">
+                <Separator />
+
+                <div className="rounded-md p-4 space-y-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.04)", border: "1px solid rgba(212, 168, 67, 0.2)" }} data-testid="container-termos-consignacao">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#D4A843" }} />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-foreground">Termos de Responsabilidade</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        A negociação será feita diretamente entre as partes. O Art Flow não se responsabiliza pelo envio físico, venda, logística ou repasse monetário.
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className="flex items-center gap-2 cursor-pointer pt-1"
+                    onClick={() => setTermosAceitos(!termosAceitos)}
+                    data-testid="checkbox-aceitar-termos-consignacao"
+                  >
+                    <div className={`h-4 w-4 rounded-sm border flex items-center justify-center flex-shrink-0 ${termosAceitos ? "bg-primary border-primary" : "border-border"}`}>
+                      {termosAceitos && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                    </div>
+                    <span className="text-xs text-foreground">Li e aceito os termos de responsabilidade</span>
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" data-testid={`button-consignacao-contato-${g.id}`}>
-                <Send className="mr-1.5 h-3 w-3" />
-                Contato
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setModalCatalogoAberto(false)} data-testid="button-cancelar-modal-consignacao">
+                Cancelar
+              </Button>
+              <Button
+                disabled={!catalogoSelecionado || !termosAceitos}
+                onClick={handleConfirmarEnvio}
+                data-testid="button-confirmar-envio-consignacao"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Confirmar Envio
               </Button>
             </div>
           </Card>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -724,8 +934,29 @@ interface CatalogoItemLeilao {
   dataCriacao: string;
 }
 
-function salvarEnvioCatalogo(envio: { catalogo: string; leiloes: string[]; qtd: number; data: string }) {
-  localStorage.setItem("artflow_envio_catalogo", JSON.stringify(envio));
+interface EnvioRegistro {
+  id: string;
+  tipo: "Leilão" | "Consignação";
+  destinatarios: string[];
+  catalogo: string;
+  catalogoId: string;
+  data: string;
+  hora: string;
+  qtd: number;
+}
+
+function carregarEnvios(): EnvioRegistro[] {
+  try {
+    const raw = localStorage.getItem("artflow_envios_realizados");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+function salvarEnvio(envio: EnvioRegistro) {
+  const envios = carregarEnvios();
+  envios.unshift(envio);
+  localStorage.setItem("artflow_envios_realizados", JSON.stringify(envios));
 }
 
 export function LeiloesPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) {
@@ -736,6 +967,7 @@ export function LeiloesPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) 
   const [enviado, setEnviado] = useState(false);
   const [catalogoEnviado, setCatalogoEnviado] = useState<string | null>(null);
   const [qtdLeiloesEnviados, setQtdLeiloesEnviados] = useState(0);
+  const { toast } = useToast();
 
   function toggleLeilao(id: number) {
     setLeiloesSelecionados((prev) => {
@@ -765,17 +997,26 @@ export function LeiloesPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) 
     const nomesLeiloes = leiloesAtivos
       .filter((l) => leiloesSelecionados.has(l.id))
       .map((l) => l.leiloeiro);
-    salvarEnvioCatalogo({
+    const agora = new Date();
+    salvarEnvio({
+      id: `envio-leilao-${Date.now()}`,
+      tipo: "Leilão",
+      destinatarios: nomesLeiloes,
       catalogo: catalogoSelecionado.titulo,
-      leiloes: nomesLeiloes,
+      catalogoId: catalogoSelecionado.id,
+      data: agora.toLocaleDateString("pt-BR"),
+      hora: agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
       qtd: leiloesSelecionados.size,
-      data: new Date().toLocaleDateString("pt-BR"),
     });
     setCatalogoEnviado(catalogoSelecionado.titulo);
     setQtdLeiloesEnviados(leiloesSelecionados.size);
     setEnviado(true);
     setModalCatalogoAberto(false);
     setLeiloesSelecionados(new Set());
+    toast({
+      title: "Catálogo enviado com sucesso!",
+      description: "O registro está disponível na sua Caixa de Entrada.",
+    });
   }
 
   const todosSelected = leiloesSelecionados.size === leiloesAtivos.length;
@@ -1137,96 +1378,173 @@ function RelatorioAvaliacao({ artista, obra }: { artista: string; obra: string }
   );
 }
 
-function carregarEnvioCatalogo(): { catalogo: string; leiloes: string[]; qtd: number; data: string } | null {
-  try {
-    const raw = localStorage.getItem("artflow_envio_catalogo");
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
-}
-
-export function CaixaEntradaPage() {
+export function CaixaEntradaPage({ onVisualizarCatalogo }: { onVisualizarCatalogo?: (catalogoId: string) => void }) {
   const [expandido, setExpandido] = useState<number | null>(null);
   const avaliacao = carregarAvaliacao();
-  const envioCatalogo = carregarEnvioCatalogo();
-
-  const mensagens = [...mensagensBase];
-
-  if (envioCatalogo) {
-    mensagens.unshift({
-      id: 101,
-      remetente: "Art Flow — Leilões",
-      tipo: "Leilões",
-      assunto: `Catálogo "${envioCatalogo.catalogo}" enviado para captação`,
-      preview: `Seu catálogo "${envioCatalogo.catalogo}" foi enviado com sucesso para ${envioCatalogo.qtd} ${envioCatalogo.qtd === 1 ? "leilão" : "leilões"}. Aguarde o contato das instituições.`,
-      data: "Hoje",
-      lida: false,
-      isRelatorio: false,
-    });
-  }
-
-  if (avaliacao) {
-    mensagens.unshift({
-      id: 100,
-      remetente: "Art Flow — Equipe de Avaliação",
-      tipo: "Avaliação",
-      assunto: `Relatório de Avaliação: ${avaliacao.artista}`,
-      preview: `Resultado da avaliação solicitada para ${avaliacao.artista}${avaliacao.obra !== "(não especificada)" ? ` — ${avaliacao.obra}` : ""}`,
-      data: "Hoje",
-      lida: false,
-      isRelatorio: true,
-    });
-  }
+  const envios = carregarEnvios();
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <div className="max-w-3xl mx-auto space-y-2">
-        <p className="text-sm text-muted-foreground mb-4" data-testid="text-caixa-desc">
-          Central de mensagens entre artistas, galerias e colecionadores.
+      <div className="max-w-3xl mx-auto space-y-6">
+        <p className="text-sm text-muted-foreground" data-testid="text-caixa-desc">
+          Central de mensagens e registro de envios realizados.
         </p>
-        {mensagens.map((m) => (
-          <div key={m.id}>
-            <Card
-              className={`p-4 hover-elevate cursor-pointer ${expandido === m.id ? "ring-1 ring-primary/30" : ""}`}
-              style={!m.lida ? { borderLeft: "3px solid #D4A843" } : undefined}
-              onClick={() => setExpandido(expandido === m.id ? null : m.id)}
-              data-testid={`card-mensagem-${m.id}`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-0.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-sm ${!m.lida ? "font-semibold" : "font-medium"} text-foreground`}>
-                      {m.remetente}
-                    </span>
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px]"
-                      style={m.tipo === "Avaliação" || m.tipo === "Leilões" ? { backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" } : undefined}
-                    >
-                      {m.tipo}
-                    </Badge>
-                    {!m.lida && (
-                      <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
+
+        {envios.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground" data-testid="text-envios-realizados-titulo">
+              Envios Realizados
+            </h3>
+            <div className="space-y-2">
+              {envios.map((envio, idx) => (
+                <Card key={envio.id} className="p-4" data-testid={`card-envio-${idx}`}>
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div className="min-w-0 space-y-1.5 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px]"
+                          style={envio.tipo === "Leilão"
+                            ? { backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" }
+                            : { backgroundColor: "rgba(99, 102, 241, 0.1)", color: "#6366f1", borderColor: "rgba(99, 102, 241, 0.3)" }
+                          }
+                          data-testid={`badge-tipo-envio-${idx}`}
+                        >
+                          {envio.tipo === "Leilão" ? <Gavel className="mr-1 h-3 w-3" /> : <Tag className="mr-1 h-3 w-3" />}
+                          {envio.tipo === "Leilão" ? "Envio para Leilão" : "Envio para Consignação"}
+                        </Badge>
+                        <Badge
+                          className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+                          style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#16a34a", borderColor: "rgba(34, 197, 94, 0.3)" }}
+                          data-testid={`badge-status-envio-${idx}`}
+                        >
+                          <Check className="mr-1 h-2.5 w-2.5" />
+                          Enviado
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground w-20">Destinatário:</span>
+                          <span className="text-xs text-foreground" data-testid={`text-destinatario-envio-${idx}`}>
+                            {envio.destinatarios.join(", ")}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground w-20">Catálogo:</span>
+                          <span className="text-xs font-medium text-foreground" data-testid={`text-catalogo-envio-${idx}`}>
+                            {envio.catalogo}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground w-20">Data:</span>
+                          <span className="text-xs text-muted-foreground" data-testid={`text-data-envio-${idx}`}>
+                            {envio.data} às {envio.hora}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {onVisualizarCatalogo && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onVisualizarCatalogo(envio.catalogoId)}
+                        data-testid={`button-visualizar-detalhes-${idx}`}
+                      >
+                        <Eye className="mr-1.5 h-3 w-3" />
+                        Visualizar Detalhes
+                      </Button>
                     )}
                   </div>
-                  <p className={`text-xs ${!m.lida ? "font-medium text-foreground" : "text-muted-foreground"}`}>
-                    {m.assunto}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{m.preview}</p>
-                </div>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{m.data}</span>
-              </div>
-            </Card>
-
-            {expandido === m.id && m.isRelatorio && avaliacao && (
-              <div className="mt-2 ml-3 mr-3 mb-4" data-testid="container-relatorio-expandido">
-                <Card className="p-5">
-                  <RelatorioAvaliacao artista={avaliacao.artista} obra={avaliacao.obra} />
                 </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(envios.length > 0 && (mensagensBase.length > 0 || avaliacao)) && <Separator />}
+
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground" data-testid="text-mensagens-titulo">
+            Mensagens
+          </h3>
+          <div className="space-y-2">
+            {avaliacao && (
+              <div>
+                <Card
+                  className={`p-4 hover-elevate cursor-pointer ${expandido === 100 ? "ring-1 ring-primary/30" : ""}`}
+                  style={{ borderLeft: "3px solid #D4A843" }}
+                  onClick={() => setExpandido(expandido === 100 ? null : 100)}
+                  data-testid="card-mensagem-100"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-foreground">
+                          Art Flow — Equipe de Avaliação
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px]"
+                          style={{ backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" }}
+                        >
+                          Avaliação
+                        </Badge>
+                        <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
+                      </div>
+                      <p className="text-xs font-medium text-foreground">
+                        Relatório de Avaliação: {avaliacao.artista}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Resultado da avaliação solicitada para {avaliacao.artista}{avaliacao.obra !== "(não especificada)" ? ` — ${avaliacao.obra}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">Hoje</span>
+                  </div>
+                </Card>
+
+                {expandido === 100 && (
+                  <div className="mt-2 ml-3 mr-3 mb-4" data-testid="container-relatorio-expandido">
+                    <Card className="p-5">
+                      <RelatorioAvaliacao artista={avaliacao.artista} obra={avaliacao.obra} />
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
+
+            {mensagensBase.map((m) => (
+              <Card
+                key={m.id}
+                className="p-4 hover-elevate cursor-pointer"
+                style={!m.lida ? { borderLeft: "3px solid #D4A843" } : undefined}
+                data-testid={`card-mensagem-${m.id}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-sm ${!m.lida ? "font-semibold" : "font-medium"} text-foreground`}>
+                        {m.remetente}
+                      </span>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {m.tipo}
+                      </Badge>
+                      {!m.lida && (
+                        <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#D4A843" }} />
+                      )}
+                    </div>
+                    <p className={`text-xs ${!m.lida ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+                      {m.assunto}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{m.preview}</p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap flex-shrink-0">{m.data}</span>
+                </div>
+              </Card>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
