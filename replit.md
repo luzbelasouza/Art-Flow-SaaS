@@ -27,17 +27,25 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 ### Área Privada
 - `/dashboard` - Dashboard (com navegação interna via sidebar)
 
-### Páginas Internas do Dashboard (Ambos os Perfis)
+### Páginas Internas do Dashboard (Artista)
 - **Perfil:** Perfil (dados do emissor), Bio (detalhada), Exposições, Representação, Mapa da Obra (detalhada)
-- **Acervo:** Artistas (apenas Colecionador), Obras, Coleções/Séries, Catálogo, Produção e Tiragem
+- **Acervo:** Obras, Coleções/Séries, Catálogo, Produção e Tiragem
 - **Logística:** Localização
 - **Comercial:** Contatos, Vendas
 - **Arquivo:** Documentos, Certificados (COA)
 - **Oportunidades (Premium):** Expo, Ocupação, Edital (com Match), Consignação, Feiras, Avaliação, Leilões Públicos, Caixa de Entrada
 
+### Páginas Internas do Dashboard (Colecionador)
+- **Perfil:** Perfil, Bio, Exposições, Representação, Mapa da Obra
+- **Acervo:** Artistas, Obras, Coleções/Séries, Catálogo, **Empréstimo / Doação** (substitui Produção e Tiragem)
+- **Logística:** Localização (com tipos Empréstimo e Doação)
+- **Comercial:** Contatos, Vendas
+- **Arquivo:** Documentos, Certificados (COA)
+- **Oportunidades (Premium):** Expo (sem prazo de inscrição), Consignação, Feiras, Avaliação, Leilões Públicos, Caixa de Entrada (**sem** Ocupação e Edital)
+
 ## Perfis de Usuário
 - **Artista:** Vê acervo do Pissarro (3 obras), sidebar com menu ERP completo
-- **Colecionador:** Mesma sidebar e funcionalidades do Artista, com sub-aba "Artistas" extra no Acervo. Vê acervo de Kirchner (3 obras) + Cassatt (2 obras), filtros por artista, seleção/catálogos/certificados/oportunidades iguais
+- **Colecionador:** Mesma sidebar base do Artista, com ajustes: sub-aba "Artistas" no Acervo, "Empréstimo / Doação" no lugar de "Produção e Tiragem", Expo sem prazo de inscrição, sem Ocupação/Edital nas Oportunidades. Vê acervo de Kirchner (3 obras) + Cassatt (2 obras), filtros por artista, seleção/catálogos/certificados funcionais
 - **Galeria:** Ainda não implementado
 
 ## Preferências do Usuário
@@ -64,9 +72,11 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 ## Arquivos Importantes (cont.)
 - `client/src/pages/perfil-emissor.tsx` - Formulário do emissor com persistência localStorage
 - `client/src/pages/catalogo.tsx` - Repositório de catálogos e visualizador de documento catálogo
-- `client/src/pages/oportunidades.tsx` - Central de Oportunidades Premium (Expo, Ocupação, Edital, Consignação, Feiras, Mercado, Caixa de Entrada)
+- `client/src/pages/oportunidades.tsx` - Central de Oportunidades Premium (Expo, Ocupação, Edital, Consignação, Feiras, Avaliação, Leilões, Caixa de Entrada)
+- `client/src/pages/emprestimo-doacao.tsx` - Empréstimo / Doação (exclusivo Colecionador) com busca dinâmica de obras
 
 ## Alterações Recentes
+- 2026-02-16: Ajustes exclusivos Colecionador: seleção de obras funcional com checkbox em ArtistaAcervo, "Produção e Tiragem" substituída por "Empréstimo / Doação" com modal + busca dinâmica por nome/ID, Localização com tipos Empréstimo e Doação, Expo sem prazo de inscrição, Ocupação e Edital removidos das Oportunidades
 - 2026-02-16: Refatoração Global - Unificação de perfis Artista/Colecionador: mesma sidebar e módulos para ambos, buildMenu(perfil) substitui menus separados, sub-aba "Artistas" no Acervo do Colecionador antes de Obras, PaginaObras unificada com seleção/catálogo para todos, campo "Artista" obrigatório no NovaObraModal (Select), limites freemium e Oportunidades iguais para ambos
 - 2026-02-16: Leilões Públicos reformulado - Fluxo por catálogo: seleção de leilões (checkboxes + Selecionar Todos), botão "Enviar Catálogo para Captação", modal de seleção de catálogo com miniatura da capa, termos de responsabilidade obrigatórios, notificação automática na Caixa de Entrada confirmando envio
 - 2026-02-16: Etapa 17 - Visualização Individual e Inteligência de Mercado: botão "Visualizar" nos cards de obra com modal ficha técnica (foto ampliada, ID, medidas, preço, status) e impressão A4, "Mercado" renomeado para "Avaliação" com formulário e bloqueio de solicitações simultâneas, Relatório Art Flow Verified na Caixa de Entrada, nova sub-aba "Leilões Públicos" com 4 leilões e envio em massa para captação

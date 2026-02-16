@@ -154,12 +154,15 @@ const convocatorias = [
   },
 ];
 
-export function ExpoPage() {
+export function ExpoPage({ perfil }: { perfil?: string }) {
+  const isColecionador = perfil === "colecionador";
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-4">
         <p className="text-sm text-muted-foreground mb-4" data-testid="text-expo-desc">
-          Convocatórias abertas de galerias e espaços expositivos.
+          {isColecionador
+            ? "Exposições e eventos abertos para colecionadores."
+            : "Convocatórias abertas de galerias e espaços expositivos."}
         </p>
         {convocatorias.map((c) => (
           <Card key={c.id} className="p-5" data-testid={`card-expo-${c.id}`}>
@@ -170,10 +173,18 @@ export function ExpoPage() {
                   <Building2 className="h-3 w-3 flex-shrink-0" />
                   {c.galeria} — {c.local}
                 </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Clock className="h-3 w-3 flex-shrink-0" />
-                  Prazo: {c.prazo}
-                </p>
+                {!isColecionador && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5" data-testid={`text-expo-prazo-${c.id}`}>
+                    <Clock className="h-3 w-3 flex-shrink-0" />
+                    Prazo: {c.prazo}
+                  </p>
+                )}
+                {isColecionador && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5" data-testid={`text-expo-data-${c.id}`}>
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    Data: {c.prazo}
+                  </p>
+                )}
                 <div className="flex items-center gap-1.5 flex-wrap mt-1">
                   {c.tecnicas.map((t) => (
                     <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>

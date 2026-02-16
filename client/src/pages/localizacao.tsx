@@ -24,7 +24,7 @@ interface Local {
   id: string;
   nome: string;
   endereco: string;
-  tipo: "feira" | "venda" | "galeria" | "deposito";
+  tipo: "feira" | "venda" | "galeria" | "deposito" | "emprestimo" | "doacao";
   detalhe: string;
 }
 
@@ -78,6 +78,8 @@ const tipoLabels: Record<string, string> = {
   venda: "Venda",
   galeria: "Galeria",
   deposito: "Depósito",
+  emprestimo: "Empréstimo",
+  doacao: "Doação",
 };
 
 export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?: (nome: string) => void }) {
@@ -135,8 +137,8 @@ export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?:
               data-testid={`card-local-${local.id}`}
             >
               <div className="flex items-start gap-4">
-                <div className={`flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 ${local.tipo === "feira" ? "bg-rose-500/10" : local.tipo === "galeria" ? "bg-blue-500/10" : local.tipo === "deposito" ? "bg-amber-500/10" : "bg-emerald-500/10"}`}>
-                  <MapPin className={`h-5 w-5 ${local.tipo === "feira" ? "text-rose-500" : local.tipo === "galeria" ? "text-blue-500" : local.tipo === "deposito" ? "text-amber-500" : "text-emerald-600"}`} />
+                <div className={`flex items-center justify-center h-10 w-10 rounded-md flex-shrink-0 ${local.tipo === "feira" ? "bg-rose-500/10" : local.tipo === "galeria" ? "bg-blue-500/10" : local.tipo === "deposito" ? "bg-amber-500/10" : local.tipo === "emprestimo" ? "bg-indigo-500/10" : local.tipo === "doacao" ? "bg-purple-500/10" : "bg-emerald-500/10"}`}>
+                  <MapPin className={`h-5 w-5 ${local.tipo === "feira" ? "text-rose-500" : local.tipo === "galeria" ? "text-blue-500" : local.tipo === "deposito" ? "text-amber-500" : local.tipo === "emprestimo" ? "text-indigo-500" : local.tipo === "doacao" ? "text-purple-500" : "text-emerald-600"}`} />
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -198,6 +200,8 @@ export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?:
                   <SelectItem value="deposito">Depósito</SelectItem>
                   <SelectItem value="feira">Feira</SelectItem>
                   <SelectItem value="venda">Venda</SelectItem>
+                  <SelectItem value="emprestimo">Empréstimo</SelectItem>
+                  <SelectItem value="doacao">Doação</SelectItem>
                 </SelectContent>
               </Select>
             </div>

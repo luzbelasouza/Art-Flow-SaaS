@@ -78,6 +78,7 @@ import {
   ShoppingBag,
   MessageSquare,
   Zap,
+  HandHeart,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -103,6 +104,7 @@ import RepresentacaoPage, { representacoesIniciais, type Representacao } from "@
 import Contatos from "@/pages/contatos";
 import Localizacao from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
+import EmprestimoDoacaoPage from "@/pages/emprestimo-doacao";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
@@ -278,6 +280,16 @@ function buildMenu(perfil: string): MenuGroup[] {
       } else {
         base[acervoIdx].items.unshift({ id: "artistas", title: "Artistas", icon: Palette });
       }
+      const producaoIdx = base[acervoIdx].items.findIndex((i) => i.id === "producao");
+      if (producaoIdx >= 0) {
+        base[acervoIdx].items[producaoIdx] = { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart };
+      }
+    }
+    const oportunidadesIdx = base.findIndex((g) => g.label === "Oportunidades");
+    if (oportunidadesIdx !== -1) {
+      base[oportunidadesIdx].items = base[oportunidadesIdx].items.filter(
+        (i) => i.id !== "oport-ocupacao" && i.id !== "oport-edital"
+      );
     }
   }
   return base;
@@ -294,6 +306,7 @@ const titulosPagina: Record<string, string> = {
   colecoes: "Coleções / Séries",
   "catalogos-repo": "Catálogo",
   producao: "Produção e Tiragem",
+  "emprestimo-doacao": "Empréstimo / Doação",
   localizacao: "Localização",
   contatos: "Contatos",
   vendas: "Vendas",
@@ -1141,12 +1154,18 @@ function ArtistaAcervo({
   filtro,
   onCertificado,
   onVisualizar,
+  modoSelecao,
+  selecionadas,
+  onToggleSelecao,
 }: {
   artistas: Artista[];
   obras: Obra[];
   filtro: string;
   onCertificado: (obra: Obra) => void;
   onVisualizar: (obra: Obra) => void;
+  modoSelecao?: boolean;
+  selecionadas?: Set<number>;
+  onToggleSelecao?: (id: number) => void;
 }) {
   const artistasFiltrados = filtro === "todos"
     ? artistas
@@ -1178,7 +1197,16 @@ function ArtistaAcervo({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {obrasDoArtista.map((obra) => (
-                <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} onVisualizar={onVisualizar} />
+                <ObraCard
+                  key={obra.id}
+                  obra={obra}
+                  artista={artista}
+                  onCertificado={onCertificado}
+                  onVisualizar={onVisualizar}
+                  modoSelecao={modoSelecao}
+                  selecionada={selecionadas?.has(obra.id)}
+                  onToggleSelecao={onToggleSelecao}
+                />
               ))}
             </div>
           </section>
@@ -1458,7 +1486,7 @@ function PaginaObras({
 
       <div className="p-6">
         {hasMultipleArtists && filtro === "todos" ? (
-          <ArtistaAcervo artistas={artistas} obras={obrasFiltradas} filtro={filtro} onCertificado={onCertificado} onVisualizar={onVisualizar} />
+          <ArtistaAcervo artistas={artistas} obras={obrasFiltradas} filtro={filtro} onCertificado={onCertificado} onVisualizar={onVisualizar} modoSelecao={modoSelecao} selecionadas={selecionadas} onToggleSelecao={toggleSelecao} />
         ) : (
           <AcervoSimples
             artistas={artistas}
@@ -1729,6 +1757,8 @@ export default function Dashboard() {
         return <Localizacao onNovaLocalizacao={(nome) => setLocalizacoesLista((prev) => [...prev, nome])} />;
       case "producao":
         return <Producao onNovaTiragem={(tir) => setTiragensLista((prev) => [...prev, tir])} />;
+      case "emprestimo-doacao":
+        return <EmprestimoDoacaoPage obras={obras} />;
       case "colecoes":
         return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
@@ -1759,7 +1789,7 @@ export default function Dashboard() {
           return <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
         }
         switch (paginaAtiva) {
-          case "oport-expo": return <ExpoPage />;
+          case "oport-expo": return <ExpoPage perfil={perfil} />;
           case "oport-ocupacao": return <OcupacaoPage />;
           case "oport-edital": return <EditalPage tecnicaArtista="Óleo sobre tela" />;
           case "oport-consignacao": return <ConsignacaoPage catalogos={catalogos} />;
