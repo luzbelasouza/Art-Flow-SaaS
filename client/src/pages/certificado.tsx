@@ -16,6 +16,43 @@ interface CertificadoProps {
   emissorLinha?: string | null;
   onClose: () => void;
   onIrPerfil?: () => void;
+  mostrarMarcaDagua?: boolean;
+}
+
+function MarcaDaguaCertificado() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
+      style={{ opacity: 0.06 }}
+      data-testid="marca-dagua-certificado"
+    >
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center gap-16"
+        style={{
+          transform: "rotate(-35deg)",
+          transformOrigin: "center center",
+          width: "200%",
+          height: "200%",
+          left: "-50%",
+          top: "-50%",
+        }}
+      >
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-24 whitespace-nowrap">
+            {Array.from({ length: 6 }).map((_, j) => (
+              <span
+                key={j}
+                className="text-2xl font-bold tracking-widest text-black select-none"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                Art Flow - Versão de Teste
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 const bioTexto =
@@ -25,7 +62,7 @@ function handleImprimir() {
   window.print();
 }
 
-export default function Certificado({ obra, emissorLinha, onClose, onIrPerfil }: CertificadoProps) {
+export default function Certificado({ obra, emissorLinha, onClose, onIrPerfil, mostrarMarcaDagua }: CertificadoProps) {
   return (
     <>
       <style>{`
@@ -104,9 +141,10 @@ export default function Certificado({ obra, emissorLinha, onClose, onIrPerfil }:
 
         <div
           id="certificado-print"
-          className="max-w-[210mm] mx-auto bg-white text-black p-8 sm:p-12 my-6 sm:my-10"
+          className="max-w-[210mm] mx-auto bg-white text-black p-8 sm:p-12 my-6 sm:my-10 relative"
         >
-          <div className="text-center mb-8">
+          {mostrarMarcaDagua && <MarcaDaguaCertificado />}
+          <div className="text-center mb-8 relative z-[2]">
             <h1
               className="font-serif text-3xl sm:text-4xl tracking-wide font-light"
               style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}

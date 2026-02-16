@@ -66,6 +66,10 @@ import {
   CheckSquare,
   Square,
   Check,
+  Lock,
+  Crown,
+  Sparkles,
+  Star,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -150,10 +154,35 @@ const obrasColecionador: Obra[] = [
   { id: 21, inventarioId: "ID-M021", titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, dimensoes: "73,0 x 60,0 cm", imagem: portraitImg },
 ];
 
+const PREMIUM_PAGES = new Set(["exposicoes", "agenda", "mapa-obra"]);
+
+const LIMITES_FREE = {
+  obras: 5,
+  certificados: 1,
+  catalogos: 1,
+};
+
+function carregarContadores(): { certificadosEmitidos: number; catalogosCriados: number } {
+  try {
+    const raw = localStorage.getItem("artflow_contadores");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { certificadosEmitidos: 0, catalogosCriados: 0 };
+}
+
+function salvarContadores(contadores: { certificadosEmitidos: number; catalogosCriados: number }) {
+  localStorage.setItem("artflow_contadores", JSON.stringify(contadores));
+}
+
+function isPremium(): boolean {
+  return localStorage.getItem("artflow_premium") === "true";
+}
+
 interface MenuItem {
   id: string;
   title: string;
   icon: typeof Image;
+  premium?: boolean;
 }
 
 interface MenuGroup {
@@ -167,9 +196,9 @@ const menuArtista: MenuGroup[] = [
     items: [
       { id: "perfil-emissor", title: "Perfil", icon: UserCog },
       { id: "bio", title: "Bio", icon: User },
-      { id: "exposicoes", title: "Exposições", icon: Calendar },
-      { id: "agenda", title: "Agenda", icon: Calendar },
-      { id: "mapa-obra", title: "Mapa da Obra", icon: Map },
+      { id: "exposicoes", title: "Exposições", icon: Calendar, premium: true },
+      { id: "agenda", title: "Agenda", icon: Calendar, premium: true },
+      { id: "mapa-obra", title: "Mapa da Obra", icon: Map, premium: true },
     ],
   },
   {
@@ -232,18 +261,86 @@ const titulosPagina: Record<string, string> = {
   configuracoes: "Configurações",
 };
 
+function UpsellModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-md" data-testid="modal-upsell">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2" data-testid="text-upsell-title">
+            <Crown className="h-5 w-5" style={{ color: "#D4A843" }} />
+            <span>Art Flow Premium</span>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-5 py-2">
+          <p className="text-sm text-muted-foreground">
+            Desbloqueie todo o potencial do Art Flow com o plano Premium e leve sua gestão de acervo ao próximo nível.
+          </p>
+
+          <div className="space-y-3">
+            {[
+              "Obras ilimitadas no acervo",
+              "Certificados e catálogos sem limite",
+              "Exposições, Agenda e Mapa da Obra",
+              "Certificados e catálogos sem marca d'água",
+              "Relatórios avançados de vendas",
+              "Suporte prioritário",
+            ].map((beneficio) => (
+              <div key={beneficio} className="flex items-center gap-2.5">
+                <Star className="h-4 w-4 flex-shrink-0" style={{ color: "#D4A843" }} />
+                <span className="text-sm text-foreground">{beneficio}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-md p-4 text-center" style={{ backgroundColor: "rgba(212, 168, 67, 0.08)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
+            <p className="text-xs text-muted-foreground mb-1">A partir de</p>
+            <p className="text-2xl font-semibold" style={{ color: "#D4A843" }}>
+              R$ 49,90<span className="text-sm font-normal text-muted-foreground">/mês</span>
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={onClose} data-testid="button-fechar-upsell">
+            Agora não
+          </Button>
+          <Button
+            style={{ backgroundColor: "#D4A843", borderColor: "#D4A843", color: "#fff" }}
+            onClick={onClose}
+            data-testid="button-assinar-upsell"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Assinar Premium
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function AppSidebar({
   onSair,
   perfil,
   artistas,
   paginaAtiva,
   onNavegar,
+  premium,
+  onUpsell,
 }: {
   onSair: () => void;
   perfil: string;
   artistas: Artista[];
   paginaAtiva: string;
   onNavegar: (id: string) => void;
+  premium: boolean;
+  onUpsell: () => void;
 }) {
   const isColecionador = perfil === "colecionador";
   const grupos = isColecionador ? menuColecionador : menuArtista;
@@ -251,6 +348,14 @@ function AppSidebar({
   const sidebarUser = isColecionador
     ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
     : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
+
+  function handleNavegar(item: MenuItem) {
+    if (item.premium && !premium) {
+      onUpsell();
+    } else {
+      onNavegar(item.id);
+    }
+  }
 
   return (
     <Sidebar>
@@ -273,11 +378,19 @@ function AppSidebar({
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       isActive={paginaAtiva === item.id}
-                      onClick={() => onNavegar(item.id)}
+                      onClick={() => handleNavegar(item)}
                       data-testid={`button-menu-${item.id}`}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span className="flex-1">{item.title}</span>
+                      {item.premium && !premium && (
+                        <span className="flex items-center gap-1 ml-auto" data-testid={`badge-premium-${item.id}`}>
+                          <Lock className="h-3 w-3" style={{ color: "#D4A843" }} />
+                          <span className="text-[9px] font-semibold tracking-wider" style={{ color: "#D4A843" }}>
+                            PREMIUM
+                          </span>
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -295,9 +408,14 @@ function AppSidebar({
             ) : null}
             <AvatarFallback>{sidebarUser.iniciais}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-foreground truncate" data-testid="text-nome-artista">
-            {sidebarUser.nome}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium text-foreground truncate" data-testid="text-nome-artista">
+              {sidebarUser.nome}
+            </span>
+            <span className="text-[10px] text-muted-foreground" data-testid="text-plano-sidebar">
+              {premium ? "Premium" : "Plano Gratuito"}
+            </span>
+          </div>
         </div>
         <Button
           variant="ghost"
@@ -1098,6 +1216,9 @@ export default function Dashboard() {
   const [catalogoVisualizado, setCatalogoVisualizado] = useState<CatalogoItem | null>(null);
   const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
   const [obrasSelecionadasCatalogo, setObrasSelecionadasCatalogo] = useState<Obra[]>([]);
+  const [upsellAberto, setUpsellAberto] = useState(false);
+  const [premium, setPremium] = useState(isPremium);
+  const [contadores, setContadores] = useState(carregarContadores);
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
@@ -1108,12 +1229,20 @@ export default function Dashboard() {
   const artistas = isColecionador ? artistasColecionador : artistasPissarro;
   const obras = isColecionador ? obrasColecionador : obrasPissarro;
 
+  const limiteObrasAtingido = !premium && obras.length >= LIMITES_FREE.obras;
+  const limiteCertificadosAtingido = !premium && contadores.certificadosEmitidos >= LIMITES_FREE.certificados;
+  const limiteCatalogosAtingido = !premium && contadores.catalogosCriados >= LIMITES_FREE.catalogos;
+
   function handleSair() {
     localStorage.removeItem("artflow_profile");
     navigate("/");
   }
 
   function handleGerarCatalogo(obrasSel: Obra[]) {
+    if (limiteCatalogosAtingido) {
+      setUpsellAberto(true);
+      return;
+    }
     setObrasSelecionadasCatalogo(obrasSel);
     setModalCatalogoAberto(true);
   }
@@ -1134,8 +1263,24 @@ export default function Dashboard() {
     const updated = [...catalogos, novo];
     setCatalogos(updated);
     salvarCatalogos(updated);
+    const novosContadores = { ...contadores, catalogosCriados: contadores.catalogosCriados + 1 };
+    setContadores(novosContadores);
+    salvarContadores(novosContadores);
     setObrasSelecionadasCatalogo([]);
     setPaginaAtiva("catalogos-repo");
+  }
+
+  function handleCertificado(obra: Obra) {
+    if (limiteCertificadosAtingido) {
+      setUpsellAberto(true);
+      return;
+    }
+    setObraCertificado(obra);
+    if (!premium) {
+      const novosContadores = { ...contadores, certificadosEmitidos: contadores.certificadosEmitidos + 1 };
+      setContadores(novosContadores);
+      salvarContadores(novosContadores);
+    }
   }
 
   const sidebarStyle = {
@@ -1156,12 +1301,12 @@ export default function Dashboard() {
             obras={obras}
             filtro={filtro}
             setFiltro={setFiltro}
-            onCertificado={setObraCertificado}
+            onCertificado={handleCertificado}
             onGerarCatalogo={handleGerarCatalogo}
           />
         );
       case "perfil-emissor":
-        return <PerfilEmissor perfilUsuario={perfil} />;
+        return <PerfilEmissor perfilUsuario={perfil} premium={premium} onAssinar={() => setUpsellAberto(true)} />;
       case "bio":
         return <Bio />;
       case "mapa-obra":
@@ -1186,7 +1331,7 @@ export default function Dashboard() {
         return (
           <CertificadosPage
             obras={obras}
-            onCertificado={setObraCertificado}
+            onCertificado={handleCertificado}
           />
         );
       case "catalogos-repo":
@@ -1210,6 +1355,8 @@ export default function Dashboard() {
           artistas={artistas}
           paginaAtiva={paginaAtiva}
           onNavegar={setPaginaAtiva}
+          premium={premium}
+          onUpsell={() => setUpsellAberto(true)}
         />
 
         <div className="flex flex-col flex-1 min-w-0">
@@ -1228,13 +1375,29 @@ export default function Dashboard() {
             </div>
 
             {mostrarBotaoNovaObra && (
-              <Button
-                onClick={() => setModalAberto(true)}
-                data-testid="button-nova-obra"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Obra
-              </Button>
+              limiteObrasAtingido ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground" data-testid="text-limite-obras">
+                    Limite atingido. Assine o plano Premium para inclusões ilimitadas.
+                  </span>
+                  <Button
+                    style={{ backgroundColor: "#D4A843", borderColor: "#D4A843", color: "#fff" }}
+                    onClick={() => setUpsellAberto(true)}
+                    data-testid="button-nova-obra-premium"
+                  >
+                    <Crown className="mr-2 h-4 w-4" />
+                    Premium
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => setModalAberto(true)}
+                  data-testid="button-nova-obra"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Obra
+                </Button>
+              )
             )}
           </header>
 
@@ -1255,6 +1418,11 @@ export default function Dashboard() {
         onSalvar={handleSalvarCatalogo}
       />
 
+      <UpsellModal
+        open={upsellAberto}
+        onClose={() => setUpsellAberto(false)}
+      />
+
       {obraCertificado && (() => {
         const dadosEmissor = carregarDadosEmissor();
         const emissorLinha = dadosEmissor ? formatarLinhaEmissor(dadosEmissor) : null;
@@ -1267,6 +1435,7 @@ export default function Dashboard() {
               setObraCertificado(null);
               setPaginaAtiva("perfil-emissor");
             }}
+            mostrarMarcaDagua={!premium}
           />
         );
       })()}
@@ -1275,6 +1444,7 @@ export default function Dashboard() {
         <CatalogoDocumento
           catalogo={catalogoVisualizado}
           onClose={() => setCatalogoVisualizado(null)}
+          mostrarMarcaDagua={!premium}
         />
       )}
     </SidebarProvider>

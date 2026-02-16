@@ -31,12 +31,50 @@ const obrasExtraInfo: Record<string, { preco: string; status: string; localizaca
   "ID-M003": { preco: "R$ 52.000,00", status: "Estoque", localizacao: "Jardins, São Paulo", exposicao: "Os Mestres do Campo — MoMA" },
 };
 
+function MarcaDaguaCatalogo() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden z-[1]"
+      style={{ opacity: 0.06 }}
+      data-testid="marca-dagua-catalogo"
+    >
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center gap-16"
+        style={{
+          transform: "rotate(-35deg)",
+          transformOrigin: "center center",
+          width: "200%",
+          height: "200%",
+          left: "-50%",
+          top: "-50%",
+        }}
+      >
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-24 whitespace-nowrap">
+            {Array.from({ length: 6 }).map((_, j) => (
+              <span
+                key={j}
+                className="text-2xl font-bold tracking-widest text-black select-none"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+              >
+                Art Flow - Versão de Teste
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CatalogoDocumento({
   catalogo,
   onClose,
+  mostrarMarcaDagua,
 }: {
   catalogo: CatalogoItem;
   onClose: () => void;
+  mostrarMarcaDagua?: boolean;
 }) {
   const dadosEmissor = carregarDadosEmissor();
   const emissorLinha = dadosEmissor ? formatarLinhaEmissor(dadosEmissor) : null;
@@ -116,7 +154,8 @@ function CatalogoDocumento({
           </div>
         </div>
 
-        <div id="catalogo-print" className="max-w-[210mm] mx-auto my-6 sm:my-10">
+        <div id="catalogo-print" className="max-w-[210mm] mx-auto my-6 sm:my-10 relative">
+          {mostrarMarcaDagua && <MarcaDaguaCatalogo />}
           <div
             className="relative w-full overflow-hidden rounded-sm catalogo-capa-print"
             style={{ minHeight: "500px" }}

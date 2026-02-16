@@ -63,6 +63,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/catalogo.tsx` - Repositório de catálogos e visualizador de documento catálogo
 
 ## Alterações Recentes
+- 2026-02-16: Modelo Freemium - Limites (5 obras, 1 cert, 1 catálogo), selos PREMIUM dourados na sidebar, UpsellModal (R$49,90/mês), marca d'água diagonal em certificados/catálogos, seção Assinatura no Perfil, bloqueio de Nova Obra/certificado/catálogo ao atingir limite
 - 2026-02-16: Etapa 12 - Gerador de Catálogos Dinâmicos: modo seleção em Obras, modal de criação, repositório de catálogos, documento visual (capa + obras + emissor), catálogo padrão "Vida no Campo"
 - 2026-02-16: Ajustes de personalização - Aba Perfil (emissor) com formulário completo, linha do emissor no cabeçalho do certificado, aviso amigável se perfil incompleto
 - 2026-02-16: Etapa 11 - Coleções/Séries (Vida no Campo: Pontoise), Documentos (busca + categorias + 3 arquivos), selos de coleção nos cards de obras

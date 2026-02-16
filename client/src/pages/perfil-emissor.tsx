@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Save, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Save, CheckCircle, Crown, Sparkles, Star } from "lucide-react";
 
 export interface DadosEmissor {
   nome: string;
@@ -41,7 +43,7 @@ export function formatarLinhaEmissor(dados: DadosEmissor): string {
   return partes.join(" — ");
 }
 
-export default function PerfilEmissor({ perfilUsuario }: { perfilUsuario: string }) {
+export default function PerfilEmissor({ perfilUsuario, premium, onAssinar }: { perfilUsuario: string; premium?: boolean; onAssinar?: () => void }) {
   const [nome, setNome] = useState("");
   const [documento, setDocumento] = useState("");
   const [email, setEmail] = useState("");
@@ -207,6 +209,66 @@ export default function PerfilEmissor({ perfilUsuario }: { perfilUsuario: string
             </span>
           )}
         </div>
+
+        <Separator className="my-2" />
+
+        <div>
+          <h3 className="text-sm font-semibold text-foreground mb-1" data-testid="text-assinatura-titulo">
+            Assinatura
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Gerencie seu plano de assinatura do Art Flow.
+          </p>
+        </div>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-foreground" data-testid="text-plano-label">Plano:</span>
+                {premium ? (
+                  <Badge
+                    className="no-default-hover-elevate no-default-active-elevate"
+                    style={{ backgroundColor: "#D4A843", color: "#fff", borderColor: "#D4A843" }}
+                    data-testid="badge-plano-premium"
+                  >
+                    <Crown className="mr-1 h-3 w-3" />
+                    Premium
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" data-testid="badge-plano-gratuito">
+                    Gratuito
+                  </Badge>
+                )}
+              </div>
+              {!premium && (
+                <p className="text-xs text-muted-foreground" data-testid="text-plano-info">
+                  Limite de 5 obras, 1 certificado e 1 catálogo
+                </p>
+              )}
+            </div>
+
+            {!premium && onAssinar && (
+              <Button
+                style={{ backgroundColor: "#D4A843", borderColor: "#D4A843", color: "#fff" }}
+                onClick={onAssinar}
+                data-testid="button-assinar-agora"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Assinar Agora
+              </Button>
+            )}
+          </div>
+
+          {premium && (
+            <div className="mt-3 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" style={{ color: "#D4A843" }} />
+              <span className="text-xs text-muted-foreground" data-testid="text-premium-ativo">
+                Acesso completo a todos os recursos
+              </span>
+            </div>
+          )}
+        </Card>
       </div>
     </div>
   );
