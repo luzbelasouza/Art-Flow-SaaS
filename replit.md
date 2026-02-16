@@ -27,6 +27,11 @@ Art Flow is built as a single-page application (SPA) with a frontend developed u
     - **Free Tier:** Limited to 5 artworks, 1 certificate, and 1 catalog. Features a diagonal watermark on certificates and catalogs.
     - **Premium Tier (R$49,90/mês):** Offers unlimited access, no watermarks, and full access to all modules including advanced commercial and opportunity features. Premium features are indicated by golden "P" seals or crowns.
 - **Content Generation:** Dynamic catalog generator allows users to select artworks and create custom catalogs with cover pages and emissor details.
+- **Tutoring Ecosystem:**
+    - **"Seja um Tutor" (Colecionador/Galeria | Premium):** Mentor registration form with title, description, price/hour (with 25% platform fee calculation), availability calendar (day/time selection), YouTube video URL, photo upload, and categories (Processo criativo, História da arte, Curadoria, Venda e precificação, Outros). File: `client/src/pages/seja-tutor.tsx`.
+    - **"Tutores Online" (Artista | Premium):** Showcase of approved tutor cards with avatar, name, category, rating, price, availability. "Contratar" button opens scheduling modal with day/time selection and payment flow. File: `client/src/pages/tutores-online.tsx`.
+    - **"Cursos" (Artista | Premium):** Simple LMS with video course grid. Each course has modules (some free preview), pricing, instructor info, ratings, and Premium inclusion badge. Purchase and detail modal. File: `client/src/pages/cursos.tsx`.
+- **Support System:** Real-time chat interface for support tickets (accessible to all profiles). Left panel with ticket list, right panel with chat messages. Create new tickets with category selection. Auto-responses by category. File: `client/src/pages/suporte.tsx`.
 - **Data Persistence:** User profile, submissions, and preferences are stored locally using `localStorage`.
 
 **System Design Choices:**

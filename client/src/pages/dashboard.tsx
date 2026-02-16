@@ -131,6 +131,10 @@ import {
   LeiloesPage,
   CaixaEntradaPage,
 } from "@/pages/oportunidades";
+import SejaTutorPage from "@/pages/seja-tutor";
+import TutoresOnlinePage from "@/pages/tutores-online";
+import CursosPage from "@/pages/cursos";
+import SuportePage from "@/pages/suporte";
 import capaCatalogoImg from "@assets/capa-catalogo_1771213791212.png";
 
 const colecoesObras: Record<number, string> = {
@@ -1936,6 +1940,7 @@ export default function Dashboard() {
       case "convocatoria":
         return premium ? <ExpoPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "seja-tutor":
+        return premium ? <SejaTutorPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "venda-arte":
       case "leilao-artflow":
         return premium ? <Placeholder page={paginaAtiva} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
@@ -1945,9 +1950,11 @@ export default function Dashboard() {
           toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
         }} onRegistrosChange={(novos) => setRegistrosArmazenamento(novos)} />;
       case "tutores-online":
+        return premium ? <TutoresOnlinePage /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "cursos":
+        return premium ? <CursosPage /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "suporte":
-        return <Placeholder page={paginaAtiva} />;
+        return <SuportePage perfil={perfil} nomeUsuario={perfil === "colecionador" ? "Minha Coleção" : perfil === "galeria" ? "Minha Galeria" : "Camille Pissarro"} />;
       case "oport-expo":
         return premium ? <ExpoPage perfil={perfil} /> : <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
       case "oport-ocupacao":
