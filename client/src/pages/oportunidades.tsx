@@ -715,12 +715,30 @@ const leiloesAtivos = [
   },
 ];
 
-export function LeiloesPage({ obras }: { obras: Obra[] }) {
-  const [selecionadas, setSelecionadas] = useState<Set<number>>(new Set());
-  const [enviadas, setEnviadas] = useState(false);
+interface CatalogoItemLeilao {
+  id: string;
+  titulo: string;
+  descricao: string;
+  capa: string;
+  obras: Obra[];
+  dataCriacao: string;
+}
 
-  function toggleSelecao(id: number) {
-    setSelecionadas((prev) => {
+function salvarEnvioCatalogo(envio: { catalogo: string; leiloes: string[]; qtd: number; data: string }) {
+  localStorage.setItem("artflow_envio_catalogo", JSON.stringify(envio));
+}
+
+export function LeiloesPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) {
+  const [leiloesSelecionados, setLeiloesSelecionados] = useState<Set<number>>(new Set());
+  const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
+  const [catalogoSelecionado, setCatalogoSelecionado] = useState<CatalogoItemLeilao | null>(null);
+  const [termosAceitos, setTermosAceitos] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  const [catalogoEnviado, setCatalogoEnviado] = useState<string | null>(null);
+  const [qtdLeiloesEnviados, setQtdLeiloesEnviados] = useState(0);
+
+  function toggleLeilao(id: number) {
+    setLeiloesSelecionados((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -728,107 +746,229 @@ export function LeiloesPage({ obras }: { obras: Obra[] }) {
     });
   }
 
-  function handleEnviarCaptacao() {
-    setEnviadas(true);
-    setSelecionadas(new Set());
+  function selecionarTodos() {
+    if (leiloesSelecionados.size === leiloesAtivos.length) {
+      setLeiloesSelecionados(new Set());
+    } else {
+      setLeiloesSelecionados(new Set(leiloesAtivos.map((l) => l.id)));
+    }
   }
+
+  function handleAbrirModalCatalogo() {
+    setCatalogoSelecionado(null);
+    setTermosAceitos(false);
+    setModalCatalogoAberto(true);
+  }
+
+  function handleConfirmarEnvio() {
+    if (!catalogoSelecionado || !termosAceitos) return;
+    const nomesLeiloes = leiloesAtivos
+      .filter((l) => leiloesSelecionados.has(l.id))
+      .map((l) => l.leiloeiro);
+    salvarEnvioCatalogo({
+      catalogo: catalogoSelecionado.titulo,
+      leiloes: nomesLeiloes,
+      qtd: leiloesSelecionados.size,
+      data: new Date().toLocaleDateString("pt-BR"),
+    });
+    setCatalogoEnviado(catalogoSelecionado.titulo);
+    setQtdLeiloesEnviados(leiloesSelecionados.size);
+    setEnviado(true);
+    setModalCatalogoAberto(false);
+    setLeiloesSelecionados(new Set());
+  }
+
+  const todosSelected = leiloesSelecionados.size === leiloesAtivos.length;
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-6">
         <p className="text-sm text-muted-foreground" data-testid="text-leiloes-desc">
-          Leilões ativos captando acervo. Selecione obras do seu acervo e envie para todos os leiloeiros de uma só vez.
+          Leilões ativos captando acervo. Selecione os leilões de interesse e envie seu catálogo para captação.
         </p>
 
-        {enviadas && (
+        {enviado && catalogoEnviado && (
           <div className="rounded-md p-3 flex items-center gap-2" style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)" }} data-testid="alert-captacao-enviada">
             <Check className="h-4 w-4 flex-shrink-0" style={{ color: "#16a34a" }} />
             <span className="text-xs" style={{ color: "#16a34a" }}>
-              Obras enviadas para captação em {leiloesAtivos.length} leiloeiros cadastrados!
+              Catálogo "{catalogoEnviado}" enviado com sucesso para {qtdLeiloesEnviados} {qtdLeiloesEnviados === 1 ? "leilão" : "leilões"}!
             </span>
           </div>
         )}
 
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Leilões Ativos</h3>
-          {leiloesAtivos.map((l) => (
-            <Card key={l.id} className="p-5" data-testid={`card-leilao-${l.id}`}>
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="space-y-1.5 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground">{l.titulo}</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Gavel className="h-3 w-3 flex-shrink-0" />
-                    {l.leiloeiro} — {l.local}
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3 flex-shrink-0" />
-                    {l.data}
-                  </p>
-                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                    {l.categorias.map((c) => (
-                      <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
-                    ))}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h3 className="text-sm font-semibold text-foreground">Selecione os Leilões</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={selecionarTodos}
+              data-testid="button-selecionar-todos-leiloes"
+            >
+              <Check className="mr-1.5 h-3 w-3" />
+              {todosSelected ? "Desmarcar Todos" : "Selecionar Todos"}
+            </Button>
+          </div>
+
+          {leiloesAtivos.map((l) => {
+            const sel = leiloesSelecionados.has(l.id);
+            return (
+              <Card
+                key={l.id}
+                className={`p-5 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
+                onClick={() => toggleLeilao(l.id)}
+                data-testid={`card-leilao-${l.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`h-5 w-5 rounded-sm border flex items-center justify-center flex-shrink-0 mt-0.5 ${sel ? "bg-primary border-primary" : "border-border"}`}>
+                    {sel && <Check className="h-3 w-3 text-primary-foreground" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="space-y-1.5 min-w-0">
+                        <h3 className="text-sm font-semibold text-foreground">{l.titulo}</h3>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Gavel className="h-3 w-3 flex-shrink-0" />
+                          {l.leiloeiro} — {l.local}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          {l.data}
+                        </p>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                          {l.categorias.map((c) => (
+                            <Badge key={c} variant="secondary" className="text-[10px]">{c}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <Badge
+                        className="no-default-hover-elevate no-default-active-elevate text-[10px]"
+                        style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#16a34a", borderColor: "rgba(34, 197, 94, 0.3)" }}
+                      >
+                        {l.captacao}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-                <Badge
-                  className="no-default-hover-elevate no-default-active-elevate text-[10px]"
-                  style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#16a34a", borderColor: "rgba(34, 197, 94, 0.3)" }}
-                >
-                  {l.captacao}
-                </Badge>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
 
         <Separator />
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground" data-testid="text-enviar-captacao-titulo">
             Enviar para Captação
           </h3>
           <p className="text-xs text-muted-foreground">
-            Selecione as obras do seu acervo que deseja enviar para todos os leiloeiros cadastrados.
+            Selecione os leilões acima e envie um catálogo do seu acervo para avaliação dos leiloeiros.
           </p>
 
-          <div className="space-y-2">
-            {obras.map((obra) => {
-              const sel = selecionadas.has(obra.id);
-              return (
-                <Card
-                  key={obra.id}
-                  className={`p-3 flex items-center gap-3 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
-                  onClick={() => toggleSelecao(obra.id)}
-                  data-testid={`card-captacao-obra-${obra.id}`}
-                >
-                  <div className={`h-5 w-5 rounded-sm border flex items-center justify-center flex-shrink-0 ${sel ? "bg-primary border-primary" : "border-border"}`}>
-                    {sel && <Check className="h-3 w-3 text-primary-foreground" />}
-                  </div>
-                  <img
-                    src={obra.imagem}
-                    alt={obra.titulo}
-                    className="h-12 w-12 object-cover rounded-sm flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{obra.titulo}</p>
-                    <p className="text-xs text-muted-foreground">{obra.tecnica}, {obra.ano}</p>
-                  </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">{obra.inventarioId}</span>
-                </Card>
-              );
-            })}
-          </div>
-
           <Button
-            disabled={selecionadas.size === 0}
-            onClick={handleEnviarCaptacao}
-            data-testid="button-enviar-captacao"
+            disabled={leiloesSelecionados.size === 0}
+            onClick={handleAbrirModalCatalogo}
+            data-testid="button-enviar-catalogo-captacao"
           >
             <Send className="mr-2 h-4 w-4" />
-            Enviar {selecionadas.size > 0 ? `(${selecionadas.size})` : ""} para {leiloesAtivos.length} Leiloeiros
+            Enviar Catálogo para Captação
+            {leiloesSelecionados.size > 0 && ` (${leiloesSelecionados.size} ${leiloesSelecionados.size === 1 ? "leilão" : "leilões"})`}
           </Button>
         </div>
       </div>
+
+      {modalCatalogoAberto && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" data-testid="modal-selecao-catalogo">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-foreground">Selecione um Catálogo</h2>
+              <p className="text-xs text-muted-foreground">
+                Escolha o catálogo que será enviado para {leiloesSelecionados.size} {leiloesSelecionados.size === 1 ? "leilão selecionado" : "leilões selecionados"}.
+              </p>
+            </div>
+
+            {catalogos.length === 0 ? (
+              <div className="rounded-md p-4 text-center" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
+                <p className="text-xs text-muted-foreground">Nenhum catálogo criado ainda. Crie um catálogo na aba Catálogo antes de enviar.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {catalogos.map((cat) => {
+                  const sel = catalogoSelecionado?.id === cat.id;
+                  return (
+                    <Card
+                      key={cat.id}
+                      className={`p-3 flex items-center gap-3 cursor-pointer ${sel ? "ring-2 ring-primary" : ""}`}
+                      onClick={() => setCatalogoSelecionado(cat)}
+                      data-testid={`card-catalogo-leilao-${cat.id}`}
+                    >
+                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center flex-shrink-0 ${sel ? "bg-primary border-primary" : "border-border"}`}>
+                        {sel && <Check className="h-3 w-3 text-primary-foreground" />}
+                      </div>
+                      <img
+                        src={cat.capa}
+                        alt={cat.titulo}
+                        className="h-14 w-10 object-cover rounded-sm flex-shrink-0 border border-border"
+                        data-testid={`img-capa-catalogo-${cat.id}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{cat.titulo}</p>
+                        <p className="text-xs text-muted-foreground truncate">{cat.descricao}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{cat.obras.length} {cat.obras.length === 1 ? "obra" : "obras"} — {cat.dataCriacao}</p>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {catalogoSelecionado && (
+              <div className="space-y-3">
+                <Separator />
+
+                <div className="rounded-md p-4 space-y-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.04)", border: "1px solid rgba(212, 168, 67, 0.2)" }} data-testid="container-termos-responsabilidade">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#D4A843" }} />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-foreground">Termos de Responsabilidade</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Cada leilão selecionado será responsável por avaliar e estimar o preço das obras.
+                      </p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        A negociação será feita diretamente entre as partes. O Art Flow não se responsabiliza pelo envio físico, venda, logística ou repasse monetário das obras.
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className="flex items-center gap-2 cursor-pointer pt-1"
+                    onClick={() => setTermosAceitos(!termosAceitos)}
+                    data-testid="checkbox-aceitar-termos"
+                  >
+                    <div className={`h-4 w-4 rounded-sm border flex items-center justify-center flex-shrink-0 ${termosAceitos ? "bg-primary border-primary" : "border-border"}`}>
+                      {termosAceitos && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                    </div>
+                    <span className="text-xs text-foreground">Li e aceito os termos de responsabilidade</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setModalCatalogoAberto(false)} data-testid="button-cancelar-modal-catalogo">
+                Cancelar
+              </Button>
+              <Button
+                disabled={!catalogoSelecionado || !termosAceitos}
+                onClick={handleConfirmarEnvio}
+                data-testid="button-confirmar-envio-catalogo"
+              >
+                <Send className="mr-2 h-4 w-4" />
+                Confirmar Envio
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
@@ -997,11 +1137,34 @@ function RelatorioAvaliacao({ artista, obra }: { artista: string; obra: string }
   );
 }
 
+function carregarEnvioCatalogo(): { catalogo: string; leiloes: string[]; qtd: number; data: string } | null {
+  try {
+    const raw = localStorage.getItem("artflow_envio_catalogo");
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 export function CaixaEntradaPage() {
   const [expandido, setExpandido] = useState<number | null>(null);
   const avaliacao = carregarAvaliacao();
+  const envioCatalogo = carregarEnvioCatalogo();
 
   const mensagens = [...mensagensBase];
+
+  if (envioCatalogo) {
+    mensagens.unshift({
+      id: 101,
+      remetente: "Art Flow — Leilões",
+      tipo: "Leilões",
+      assunto: `Catálogo "${envioCatalogo.catalogo}" enviado para captação`,
+      preview: `Seu catálogo "${envioCatalogo.catalogo}" foi enviado com sucesso para ${envioCatalogo.qtd} ${envioCatalogo.qtd === 1 ? "leilão" : "leilões"}. Aguarde o contato das instituições.`,
+      data: "Hoje",
+      lida: false,
+      isRelatorio: false,
+    });
+  }
+
   if (avaliacao) {
     mensagens.unshift({
       id: 100,
@@ -1038,7 +1201,7 @@ export function CaixaEntradaPage() {
                     <Badge
                       variant="secondary"
                       className="text-[10px]"
-                      style={m.tipo === "Avaliação" ? { backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" } : undefined}
+                      style={m.tipo === "Avaliação" || m.tipo === "Leilões" ? { backgroundColor: "rgba(212, 168, 67, 0.1)", color: "#D4A843", borderColor: "rgba(212, 168, 67, 0.3)" } : undefined}
                     >
                       {m.tipo}
                     </Badge>

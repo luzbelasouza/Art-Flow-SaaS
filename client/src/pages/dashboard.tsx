@@ -1698,7 +1698,7 @@ export default function Dashboard() {
           case "oport-consignacao": return <ConsignacaoPage />;
           case "oport-feiras": return <FeirasPage />;
           case "oport-avaliacao": return <AvaliacaoPage />;
-          case "oport-leiloes": return <LeiloesPage obras={obras} />;
+          case "oport-leiloes": return <LeiloesPage catalogos={catalogos} />;
           case "oport-caixa": return <CaixaEntradaPage />;
           default: return <Placeholder page={paginaAtiva} />;
         }
