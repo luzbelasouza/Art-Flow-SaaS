@@ -46,37 +46,58 @@ import camponesasImg from "@assets/camponesas_1771198582484.png";
 import respigadoresImg from "@assets/respigadores_1771198582490.png";
 import pissarroImg from "@assets/pissarro_1771198589992.png";
 
+import kirchnerImg from "@assets/1-Kirchner_1771200555851.png";
+import girlImg from "@assets/2-Girl_1771200555854.png";
+import dancersImg from "@assets/3-Dancers_1771200555855.png";
+import vistaImg from "@assets/4-Vista_1771200555856.png";
+import cassattImg from "@assets/5-Cassat__1771200555857.png";
+import chestnutImg from "@assets/6-chestnut__1771200555857.png";
+import portraitImg from "@assets/7-portrait__1771200555858.png";
+
 const perfilLabels: Record<string, string> = {
   artista: "Artista",
   colecionador: "Colecionador",
   galeria: "Galeria",
 };
 
-const obras = [
-  {
-    id: 1,
-    titulo: "Colheita das Maçãs",
-    artista: "Camille Pissarro (1830–1903)",
-    tecnica: "Óleo sobre tela",
-    ano: 1888,
-    imagem: colheitaImg,
-  },
-  {
-    id: 2,
-    titulo: "Jovens Camponesas Descansando",
-    artista: "Camille Pissarro (1830–1903)",
-    tecnica: "Óleo sobre tela",
-    ano: 1882,
-    imagem: camponesasImg,
-  },
-  {
-    id: 3,
-    titulo: "Os Respigadores",
-    artista: "Camille Pissarro (1830–1903)",
-    tecnica: "Óleo sobre tela",
-    ano: 1889,
-    imagem: respigadoresImg,
-  },
+interface Obra {
+  id: number;
+  titulo: string;
+  artistaId: string;
+  tecnica: string;
+  ano: number;
+  imagem: string;
+}
+
+interface Artista {
+  id: string;
+  nome: string;
+  anos: string;
+  foto: string;
+  iniciais: string;
+}
+
+const artistasPissarro: Artista[] = [
+  { id: "pissarro", nome: "Camille Pissarro", anos: "1830–1903", foto: pissarroImg, iniciais: "CP" },
+];
+
+const obrasPissarro: Obra[] = [
+  { id: 1, titulo: "Colheita das Maçãs", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1888, imagem: colheitaImg },
+  { id: 2, titulo: "Jovens Camponesas Descansando", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1882, imagem: camponesasImg },
+  { id: 3, titulo: "Os Respigadores", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1889, imagem: respigadoresImg },
+];
+
+const artistasColecionador: Artista[] = [
+  { id: "kirchner", nome: "Ernst Ludwig Kirchner", anos: "1880–1938", foto: kirchnerImg, iniciais: "EK" },
+  { id: "cassatt", nome: "Mary Cassatt", anos: "1844–1926", foto: cassattImg, iniciais: "MC" },
+];
+
+const obrasColecionador: Obra[] = [
+  { id: 10, titulo: "Reclining Girl in White", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1909, imagem: girlImg },
+  { id: 11, titulo: "Dancers in Old-Frankfurt", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1904, imagem: dancersImg },
+  { id: 12, titulo: "View of Dresden", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1910, imagem: vistaImg },
+  { id: 20, titulo: "Under the Horse-Chestnut Tree", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1898, imagem: chestnutImg },
+  { id: 21, titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, imagem: portraitImg },
 ];
 
 const menuItems = [
@@ -85,7 +106,19 @@ const menuItems = [
   { title: "Configurações", icon: Settings, active: false },
 ];
 
-function AppSidebar({ onSair }: { onSair: () => void }) {
+function AppSidebar({
+  onSair,
+  perfil,
+  artistas,
+}: {
+  onSair: () => void;
+  perfil: string;
+  artistas: Artista[];
+}) {
+  const sidebarUser = perfil === "colecionador"
+    ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
+    : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
+
   return (
     <Sidebar>
       <SidebarHeader className="p-5">
@@ -120,11 +153,13 @@ function AppSidebar({ onSair }: { onSair: () => void }) {
       <SidebarFooter className="p-3 space-y-3">
         <div className="flex items-center gap-3 px-2">
           <Avatar className="h-8 w-8" data-testid="avatar-artista">
-            <AvatarImage src={pissarroImg} alt="Camille Pissarro" />
-            <AvatarFallback>CP</AvatarFallback>
+            {sidebarUser.foto ? (
+              <AvatarImage src={sidebarUser.foto} alt={sidebarUser.nome} />
+            ) : null}
+            <AvatarFallback>{sidebarUser.iniciais}</AvatarFallback>
           </Avatar>
           <span className="text-sm font-medium text-foreground truncate" data-testid="text-nome-artista">
-            Camille Pissarro
+            {sidebarUser.nome}
           </span>
         </div>
         <Button
@@ -138,6 +173,55 @@ function AppSidebar({ onSair }: { onSair: () => void }) {
         </Button>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
+  const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
+
+  return (
+    <Card className="flex flex-col" data-testid={`card-obra-${obra.id}`}>
+      <img
+        src={obra.imagem}
+        alt={obra.titulo}
+        className="h-56 w-full object-cover rounded-t-md"
+        data-testid={`img-obra-${obra.id}`}
+      />
+      <div className="p-5 flex flex-col flex-1">
+        <h3
+          className="text-lg font-semibold text-foreground"
+          data-testid={`text-titulo-obra-${obra.id}`}
+        >
+          {obra.titulo}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {artistaLabel}
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Técnica: {obra.tecnica} | Ano: {obra.ano}
+        </p>
+
+        <Separator className="my-4" />
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid={`button-editar-${obra.id}`}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Editar
+          </Button>
+          <Button
+            size="sm"
+            data-testid={`button-certificado-${obra.id}`}
+          >
+            <Award className="mr-1.5 h-3.5 w-3.5" />
+            Certificado
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -259,15 +343,86 @@ function NovaObraModal({
   );
 }
 
+function ArtistaAcervo({
+  artistas,
+  obras,
+  filtro,
+}: {
+  artistas: Artista[];
+  obras: Obra[];
+  filtro: string;
+}) {
+  const artistasFiltrados = filtro === "todos"
+    ? artistas
+    : artistas.filter((a) => a.id === filtro);
+
+  return (
+    <div className="space-y-10">
+      {artistasFiltrados.map((artista) => {
+        const obrasDoArtista = obras.filter((o) => o.artistaId === artista.id);
+        if (obrasDoArtista.length === 0) return null;
+
+        return (
+          <section key={artista.id} data-testid={`secao-artista-${artista.id}`}>
+            <div className="flex items-center gap-3 mb-6">
+              <Avatar className="h-10 w-10" data-testid={`avatar-secao-${artista.id}`}>
+                <AvatarImage src={artista.foto} alt={artista.nome} />
+                <AvatarFallback>{artista.iniciais}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h2
+                  className="text-lg font-semibold text-foreground"
+                  data-testid={`text-nome-secao-${artista.id}`}
+                >
+                  {artista.nome}
+                </h2>
+                <p className="text-sm text-muted-foreground">{artista.anos}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {obrasDoArtista.map((obra) => (
+                <ObraCard key={obra.id} obra={obra} artista={artista} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function AcervoSimples({
+  artistas,
+  obras,
+}: {
+  artistas: Artista[];
+  obras: Obra[];
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {obras.map((obra) => {
+        const artista = artistas.find((a) => a.id === obra.artistaId);
+        return <ObraCard key={obra.id} obra={obra} artista={artista} />;
+      })}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const [perfil, setPerfil] = useState<string>("artista");
   const [modalAberto, setModalAberto] = useState(false);
+  const [filtro, setFiltro] = useState("todos");
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
     if (saved) setPerfil(saved);
   }, []);
+
+  const isColecionador = perfil === "colecionador";
+  const artistas = isColecionador ? artistasColecionador : artistasPissarro;
+  const obras = isColecionador ? obrasColecionador : obrasPissarro;
 
   function handleSair() {
     localStorage.removeItem("artflow_profile");
@@ -282,7 +437,7 @@ export default function Dashboard() {
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full bg-muted/30">
-        <AppSidebar onSair={handleSair} />
+        <AppSidebar onSair={handleSair} perfil={perfil} artistas={artistas} />
 
         <div className="flex flex-col flex-1 min-w-0">
           <header className="flex items-center justify-between gap-4 flex-wrap border-b bg-background px-6 py-4">
@@ -308,53 +463,31 @@ export default function Dashboard() {
             </Button>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {obras.map((obra) => (
-                <Card key={obra.id} className="flex flex-col" data-testid={`card-obra-${obra.id}`}>
-                  <img
-                    src={obra.imagem}
-                    alt={obra.titulo}
-                    className="h-56 w-full object-cover rounded-t-md"
-                    data-testid={`img-obra-${obra.id}`}
-                  />
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3
-                      className="text-lg font-semibold text-foreground"
-                      data-testid={`text-titulo-obra-${obra.id}`}
-                    >
-                      {obra.titulo}
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {obra.artista}
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Técnica: {obra.tecnica} | Ano: {obra.ano}
-                    </p>
-
-                    <Separator className="my-4" />
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        data-testid={`button-editar-${obra.id}`}
-                      >
-                        <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                        Editar
-                      </Button>
-                      <Button
-                        size="sm"
-                        data-testid={`button-certificado-${obra.id}`}
-                      >
-                        <Award className="mr-1.5 h-3.5 w-3.5" />
-                        Certificado
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
+          {isColecionador && (
+            <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
+              {[
+                { id: "todos", label: "Ver Todos" },
+                ...artistas.map((a) => ({ id: a.id, label: a.nome })),
+              ].map((item) => (
+                <Button
+                  key={item.id}
+                  variant={filtro === item.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFiltro(item.id)}
+                  data-testid={`button-filtro-${item.id}`}
+                >
+                  {item.label}
+                </Button>
               ))}
             </div>
+          )}
+
+          <main className="flex-1 overflow-y-auto p-6">
+            {isColecionador ? (
+              <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} />
+            ) : (
+              <AcervoSimples artistas={artistas} obras={obras} />
+            )}
           </main>
         </div>
       </div>
