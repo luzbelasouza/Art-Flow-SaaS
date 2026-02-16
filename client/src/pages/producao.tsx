@@ -2,8 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Printer, Play, Pause, RotateCcw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Printer, Play, Pause, RotateCcw, Plus } from "lucide-react";
 
 interface ObraEmProducao {
   id: string;
@@ -91,17 +100,45 @@ function Cronometro({ obraId, ativo }: { obraId: string; ativo: boolean }) {
 }
 
 export default function Producao() {
-  const [obras] = useState(obrasIniciais);
+  const [obras, setObras] = useState(obrasIniciais);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [titulo, setTitulo] = useState("");
+  const [tecnica, setTecnica] = useState("");
+
+  function handleSalvar() {
+    if (!titulo.trim()) return;
+    const nova: ObraEmProducao = {
+      id: `prod-${Date.now()}`,
+      titulo: titulo.trim(),
+      tecnica: tecnica.trim() || "Técnica não informada",
+      progresso: 0,
+      status: "em_execucao",
+    };
+    setObras([nova, ...obras]);
+    setTitulo("");
+    setTecnica("");
+    setModalAberto(false);
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Printer className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-semibold text-foreground" data-testid="text-titulo-producao">
-            Produção e Tiragem
-          </h2>
-          <Badge variant="secondary">{obras.length}</Badge>
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
+          <div className="flex items-center gap-2">
+            <Printer className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground" data-testid="text-titulo-producao">
+              Produção e Tiragem
+            </h2>
+            <Badge variant="secondary">{obras.length}</Badge>
+          </div>
+          <Button
+            onClick={() => setModalAberto(true)}
+            style={{ backgroundColor: "#16a34a", borderColor: "#16a34a", color: "#fff" }}
+            data-testid="button-nova-producao"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Produção
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -146,6 +183,40 @@ export default function Producao() {
           ))}
         </div>
       </div>
+
+      <Dialog open={modalAberto} onOpenChange={(v) => !v && setModalAberto(false)}>
+        <DialogContent className="sm:max-w-md" data-testid="modal-nova-producao">
+          <DialogHeader>
+            <DialogTitle data-testid="text-modal-producao-title">Nova Produção</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="titulo-producao">Título da Obra</Label>
+              <Input
+                id="titulo-producao"
+                placeholder='Ex: "Série Noturna #4"'
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                data-testid="input-titulo-producao"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tecnica-producao">Técnica e Dimensões</Label>
+              <Input
+                id="tecnica-producao"
+                placeholder="Ex: Óleo sobre tela – 100x80 cm"
+                value={tecnica}
+                onChange={(e) => setTecnica(e.target.value)}
+                data-testid="input-tecnica-producao"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setModalAberto(false)} data-testid="button-cancelar-producao">Cancelar</Button>
+            <Button onClick={handleSalvar} disabled={!titulo.trim()} data-testid="button-salvar-producao">Iniciar Cronômetro</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

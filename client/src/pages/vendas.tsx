@@ -1,11 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, DollarSign, BarChart3, ShoppingBag } from "lucide-react";
+import { DollarSign, BarChart3, ShoppingBag, Package } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
 import camponesasImg from "@assets/camponesas_1771198582484.png";
 import respigadoresImg from "@assets/respigadores_1771198582490.png";
+
+interface ObraEstoque {
+  titulo: string;
+  preco: number;
+  status: string;
+}
+
+const obrasEstoque: ObraEstoque[] = [
+  { titulo: "Colheita das Maçãs", preco: 45000, status: "Acervo" },
+  { titulo: "Jovens Camponesas Descansando", preco: 38000, status: "Estoque" },
+  { titulo: "Os Respigadores", preco: 52000, status: "Estoque" },
+];
+
+const valorEmEstoque = obrasEstoque
+  .filter((o) => o.status === "Estoque" || o.status === "Acervo")
+  .reduce((acc, o) => acc + o.preco, 0);
 
 interface Venda {
   id: number;
@@ -78,15 +94,15 @@ export default function Vendas() {
             </div>
           </Card>
 
-          <Card className="p-5" data-testid="card-valorizacao">
+          <Card className="p-5" data-testid="card-valor-estoque">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center h-10 w-10 rounded-md bg-emerald-500/10">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
+                <Package className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Valorização (12 meses)</p>
-                <p className="text-xl font-semibold text-emerald-600" data-testid="text-valorizacao">
-                  +15%
+                <p className="text-sm text-muted-foreground">Valor em Estoque (À Venda)</p>
+                <p className="text-xl font-semibold text-emerald-600" data-testid="text-valor-estoque">
+                  {formatarMoeda(valorEmEstoque)}
                 </p>
               </div>
             </div>

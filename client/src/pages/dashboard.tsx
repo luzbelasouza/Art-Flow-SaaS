@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -78,6 +79,7 @@ import {
   MessageSquare,
   Zap,
 } from "lucide-react";
+import confetti from "canvas-confetti";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
 import camponesasImg from "@assets/camponesas_1771198582484.png";
@@ -302,9 +304,11 @@ const titulosPagina: Record<string, string> = {
 function UpsellModal({
   open,
   onClose,
+  onAssinar,
 }: {
   open: boolean;
   onClose: () => void;
+  onAssinar: () => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -351,7 +355,7 @@ function UpsellModal({
           </Button>
           <Button
             style={{ backgroundColor: "#D4A843", borderColor: "#D4A843", color: "#fff" }}
-            onClick={onClose}
+            onClick={onAssinar}
             data-testid="button-assinar-upsell"
           >
             <Sparkles className="mr-2 h-4 w-4" />
@@ -597,9 +601,13 @@ const colecoesDisponiveis = [
 function NovaObraModal({
   open,
   onClose,
+  colecoesLista,
+  localizacoesLista,
 }: {
   open: boolean;
   onClose: () => void;
+  colecoesLista: string[];
+  localizacoesLista: string[];
 }) {
   const [idInventario] = useState(gerarIdInventario);
   const [titulo, setTitulo] = useState("");
@@ -748,7 +756,7 @@ function NovaObraModal({
                 <SelectValue placeholder="Selecione a localização" />
               </SelectTrigger>
               <SelectContent>
-                {localizacoesDisponiveis.map((loc) => (
+                {localizacoesLista.map((loc) => (
                   <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                 ))}
               </SelectContent>
@@ -763,7 +771,7 @@ function NovaObraModal({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="nenhuma">Nenhuma</SelectItem>
-                {colecoesDisponiveis.map((col) => (
+                {colecoesLista.map((col) => (
                   <SelectItem key={col} value={col}>{col}</SelectItem>
                 ))}
               </SelectContent>
@@ -1268,6 +1276,26 @@ export default function Dashboard() {
   const [upsellAberto, setUpsellAberto] = useState(false);
   const [premium, setPremium] = useState(isPremium);
   const [contadores, setContadores] = useState(carregarContadores);
+  const { toast } = useToast();
+
+  const [colecoesLista, setColecoesLista] = useState<string[]>([...colecoesDisponiveis]);
+  const [localizacoesLista, setLocalizacoesLista] = useState<string[]>([...localizacoesDisponiveis]);
+
+  const handleAtivarPremium = useCallback(() => {
+    localStorage.setItem("artflow_premium", "true");
+    setPremium(true);
+    setUpsellAberto(false);
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ["#D4A843", "#FFD700", "#FFA500", "#FFFFFF", "#E8C55A"],
+    });
+    toast({
+      title: "Parabéns!",
+      description: "Você agora tem acesso ilimitado ao Art Flow.",
+    });
+  }, [toast]);
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
@@ -1355,7 +1383,7 @@ export default function Dashboard() {
           />
         );
       case "perfil-emissor":
-        return <PerfilEmissor perfilUsuario={perfil} premium={premium} onAssinar={() => setUpsellAberto(true)} />;
+        return <PerfilEmissor perfilUsuario={perfil} premium={premium} onAssinar={handleAtivarPremium} />;
       case "bio":
         return <Bio />;
       case "mapa-obra":
@@ -1369,11 +1397,11 @@ export default function Dashboard() {
       case "contatos":
         return <Contatos />;
       case "localizacao":
-        return <Localizacao />;
+        return <Localizacao onNovaLocalizacao={(nome) => setLocalizacoesLista((prev) => [...prev, nome])} />;
       case "producao":
         return <Producao />;
       case "colecoes":
-        return <Colecoes />;
+        return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
         return <Documentos />;
       case "certificados":
@@ -1398,7 +1426,7 @@ export default function Dashboard() {
       case "oport-mercado":
       case "oport-caixa":
         if (!premium) {
-          return <OportunidadesUpsell onAssinar={() => setUpsellAberto(true)} />;
+          return <OportunidadesUpsell onAssinar={handleAtivarPremium} />;
         }
         switch (paginaAtiva) {
           case "oport-expo": return <ExpoPage />;
@@ -1479,6 +1507,8 @@ export default function Dashboard() {
       <NovaObraModal
         open={modalAberto}
         onClose={() => setModalAberto(false)}
+        colecoesLista={colecoesLista}
+        localizacoesLista={localizacoesLista}
       />
 
       <NovoCatalogoModal
@@ -1490,6 +1520,7 @@ export default function Dashboard() {
       <UpsellModal
         open={upsellAberto}
         onClose={() => setUpsellAberto(false)}
+        onAssinar={handleAtivarPremium}
       />
 
       {obraCertificado && (() => {
