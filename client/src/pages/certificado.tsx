@@ -6,9 +6,11 @@ import pissarroImg from "@assets/pissarro_1771198589992.png";
 interface CertificadoProps {
   obra: {
     id: number;
+    inventarioId: string;
     titulo: string;
     tecnica: string;
     ano: number;
+    dimensoes: string;
     imagem: string;
   };
   onClose: () => void;
@@ -17,26 +19,11 @@ interface CertificadoProps {
 const bioTexto =
   "Pintor e gravurista franco-brasileiro, considerado um dos fundadores do Impressionismo. Conhecido por suas paisagens rurais e cenas campestres que capturam a luz natural com maestria. Trabalhou extensivamente em Pontoise e Éragny-sur-Epte, onde desenvolveu técnicas inovadoras de pintura ao ar livre.";
 
-const idsCertificado: Record<number, string> = {
-  1: "COA-2026-001",
-  2: "COA-2026-002",
-  3: "COA-2026-003",
-};
-
-const dimensoesObra: Record<number, string> = {
-  1: "73,4 x 60,1 cm",
-  2: "81,0 x 65,1 cm",
-  3: "65,4 x 81,3 cm",
-};
-
 function handleImprimir() {
   window.print();
 }
 
 export default function Certificado({ obra, onClose }: CertificadoProps) {
-  const coaId = idsCertificado[obra.id] || `COA-${Date.now()}`;
-  const medidas = dimensoesObra[obra.id] || "—";
-
   return (
     <>
       <style>{`
@@ -104,7 +91,7 @@ export default function Certificado({ obra, onClose }: CertificadoProps) {
                 className="font-mono text-sm tracking-widest text-black/60"
                 data-testid="text-cert-id"
               >
-                {coaId}
+                {obra.inventarioId}
               </span>
               <Separator className="w-16 bg-black/20" />
             </div>
@@ -127,6 +114,13 @@ export default function Certificado({ obra, onClose }: CertificadoProps) {
                 </p>
               </div>
 
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-black/40 mb-1">
+                  ID de Inventário
+                </p>
+                <p className="text-sm font-mono" data-testid="text-cert-inventario">{obra.inventarioId}</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-black/40 mb-1">
@@ -146,7 +140,7 @@ export default function Certificado({ obra, onClose }: CertificadoProps) {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-black/40 mb-1">
                   Dimensões
                 </p>
-                <p className="text-sm" data-testid="text-cert-dimensoes">{medidas}</p>
+                <p className="text-sm" data-testid="text-cert-dimensoes">{obra.dimensoes}</p>
               </div>
 
               <div>

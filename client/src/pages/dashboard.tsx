@@ -58,6 +58,8 @@ import {
   FileText,
   ShieldCheck,
   Map,
+  Search,
+  Eye,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -99,10 +101,12 @@ const perfilLabels: Record<string, string> = {
 
 interface Obra {
   id: number;
+  inventarioId: string;
   titulo: string;
   artistaId: string;
   tecnica: string;
   ano: number;
+  dimensoes: string;
   imagem: string;
 }
 
@@ -119,9 +123,9 @@ const artistasPissarro: Artista[] = [
 ];
 
 const obrasPissarro: Obra[] = [
-  { id: 1, titulo: "Colheita das Maçãs", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1888, imagem: colheitaImg },
-  { id: 2, titulo: "Jovens Camponesas Descansando", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1882, imagem: camponesasImg },
-  { id: 3, titulo: "Os Respigadores", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1889, imagem: respigadoresImg },
+  { id: 1, inventarioId: "ID-M001", titulo: "Colheita das Maçãs", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1888, dimensoes: "73,4 x 60,1 cm", imagem: colheitaImg },
+  { id: 2, inventarioId: "ID-M002", titulo: "Jovens Camponesas Descansando", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1882, dimensoes: "81,0 x 65,1 cm", imagem: camponesasImg },
+  { id: 3, inventarioId: "ID-M003", titulo: "Os Respigadores", artistaId: "pissarro", tecnica: "Óleo sobre tela", ano: 1889, dimensoes: "65,4 x 81,3 cm", imagem: respigadoresImg },
 ];
 
 const artistasColecionador: Artista[] = [
@@ -130,11 +134,11 @@ const artistasColecionador: Artista[] = [
 ];
 
 const obrasColecionador: Obra[] = [
-  { id: 10, titulo: "Reclining Girl in White", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1909, imagem: girlImg },
-  { id: 11, titulo: "Dancers in Old-Frankfurt", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1904, imagem: dancersImg },
-  { id: 12, titulo: "View of Dresden", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1910, imagem: vistaImg },
-  { id: 20, titulo: "Under the Horse-Chestnut Tree", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1898, imagem: chestnutImg },
-  { id: 21, titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, imagem: portraitImg },
+  { id: 10, inventarioId: "ID-M010", titulo: "Reclining Girl in White", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1909, dimensoes: "84,0 x 95,5 cm", imagem: girlImg },
+  { id: 11, inventarioId: "ID-M011", titulo: "Dancers in Old-Frankfurt", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1904, dimensoes: "91,5 x 68,0 cm", imagem: dancersImg },
+  { id: 12, inventarioId: "ID-M012", titulo: "View of Dresden", artistaId: "kirchner", tecnica: "Óleo sobre tela", ano: 1910, dimensoes: "70,0 x 80,0 cm", imagem: vistaImg },
+  { id: 20, inventarioId: "ID-M020", titulo: "Under the Horse-Chestnut Tree", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1898, dimensoes: "100,3 x 81,3 cm", imagem: chestnutImg },
+  { id: 21, inventarioId: "ID-M021", titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, dimensoes: "73,0 x 60,0 cm", imagem: portraitImg },
 ];
 
 interface MenuItem {
@@ -318,6 +322,10 @@ function ObraCard({ obra, artista, onCertificado }: { obra: Obra; artista?: Arti
         <p className="mt-1 text-sm text-muted-foreground">
           {artistaLabel}
         </p>
+
+        <p className="mt-0.5 font-mono text-xs text-muted-foreground" data-testid={`text-inventario-${obra.id}`}>
+          {obra.inventarioId}
+        </p>
         <p className="mt-2 text-xs text-muted-foreground">
           Técnica: {obra.tecnica} | Ano: {obra.ano}
         </p>
@@ -360,8 +368,8 @@ function ObraCard({ obra, artista, onCertificado }: { obra: Obra; artista?: Arti
 }
 
 function gerarIdInventario() {
-  const num = Math.floor(100000 + Math.random() * 900000);
-  return `M${num}`;
+  const num = Math.floor(100 + Math.random() * 900);
+  return `ID-M${String(num).padStart(3, "0")}`;
 }
 
 const localizacoesDisponiveis = [
@@ -716,10 +724,90 @@ function PaginaObras({
   );
 }
 
-const placeholderPages = [
-  "exposicoes", "agenda", "colecoes", "producao",
-  "localizacao", "contatos", "vendas", "documentos", "certificados", "configuracoes",
-];
+function CertificadosPage({
+  obras,
+  onCertificado,
+}: {
+  obras: Obra[];
+  onCertificado: (obra: Obra) => void;
+}) {
+  const [busca, setBusca] = useState("");
+
+  const obrasFiltradas = obras.filter((obra) => {
+    if (!busca.trim()) return true;
+    const termo = busca.toLowerCase();
+    const colecao = colecoesObras[obra.id] || "";
+    return (
+      obra.titulo.toLowerCase().includes(termo) ||
+      obra.inventarioId.toLowerCase().includes(termo) ||
+      obra.ano.toString().includes(termo) ||
+      colecao.toLowerCase().includes(termo)
+    );
+  });
+
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por título, ano, coleção ou ID de Inventário..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="pl-10"
+          data-testid="input-busca-certificados"
+        />
+      </div>
+
+      {obrasFiltradas.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+          <ShieldCheck className="h-12 w-12 mb-3 opacity-30" />
+          <p className="text-sm">Nenhum certificado encontrado.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {obrasFiltradas.map((obra) => (
+            <Card
+              key={obra.id}
+              className="flex flex-row items-center gap-4 p-4"
+              data-testid={`card-cert-${obra.id}`}
+            >
+              <img
+                src={obra.imagem}
+                alt={obra.titulo}
+                className="h-16 w-16 rounded-sm object-cover flex-shrink-0"
+                data-testid={`img-cert-thumb-${obra.id}`}
+              />
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-medium text-foreground truncate"
+                  data-testid={`text-cert-titulo-${obra.id}`}
+                >
+                  {obra.titulo}
+                </p>
+                <p
+                  className="text-xs font-mono text-muted-foreground"
+                  data-testid={`text-cert-inv-${obra.id}`}
+                >
+                  {obra.inventarioId}
+                </p>
+                <p className="text-xs text-muted-foreground">{obra.ano}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onCertificado(obra)}
+                data-testid={`button-ver-cert-${obra.id}`}
+              >
+                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                Visualizar
+              </Button>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -784,6 +872,13 @@ export default function Dashboard() {
         return <Colecoes />;
       case "documentos":
         return <Documentos />;
+      case "certificados":
+        return (
+          <CertificadosPage
+            obras={obras}
+            onCertificado={setObraCertificado}
+          />
+        );
       default:
         return <Placeholder page={paginaAtiva} />;
     }

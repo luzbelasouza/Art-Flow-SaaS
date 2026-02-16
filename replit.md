@@ -8,7 +8,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - **Etapas 2-8 (Concluídas):** Landing page, Login/Cadastro, Dashboard com galeria de obras, suporte multi-perfil (Artista/Colecionador), filtros por artista.
 - **Etapa 9 (Concluída):** Reestruturação do perfil Artista com menu ERP Cultural, telas Bio, Mapa da Obra, e modal aprimorado.
 - **Etapa 10 (Concluída):** 7 novas telas funcionais – Exposições, Vendas, Agenda, Contatos, Localização, Produção, Mapa da Obra interativo com popups.
-- **Etapa 11 (Concluída):** Coleções/Séries com "Vida no Campo: A Série de Pontoise", Documentos estilo Drive com busca e 3 arquivos, selos de coleção nos cards de obras.
+- **Etapa 11 (Concluída):** Coleções/Séries com "Vida no Campo: A Série de Pontoise", Documentos estilo Drive com busca e 3 arquivos, selos de coleção nos cards de obras. Ajustes de consistência: IDs de Inventário padronizados (ID-M001 a ID-M003), aba Certificados funcional com repositório automático e busca inteligente, dimensões nas obras de Pissarro.
 
 ## Arquitetura
 - **Frontend:** React + Tailwind CSS + shadcn/ui (wouter para rotas)
@@ -55,6 +55,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/producao.tsx` - Obras em produção com progresso e cronômetros
 - `client/src/pages/colecoes.tsx` - Coleção "Vida no Campo" com 2 obras agrupadas
 - `client/src/pages/documentos.tsx` - Gestão de documentos estilo Drive com busca e categorias
+- `client/src/pages/certificado.tsx` - Certificado de Autenticidade em tela cheia com impressão A4
 - `client/src/pages/placeholder.tsx` - Componente placeholder reutilizável
 
 ## Alterações Recentes
