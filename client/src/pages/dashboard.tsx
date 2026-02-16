@@ -267,18 +267,24 @@ const menuArtista: MenuGroup[] = [
   },
 ];
 
-const menuColecionador: MenuGroup[] = [
-  {
-    label: "Acervo",
-    items: [
-      { id: "obras", title: "Meu Acervo", icon: Image },
-      { id: "certificados", title: "Certificados", icon: Award },
-      { id: "configuracoes", title: "Configurações", icon: Settings },
-    ],
-  },
-];
+function buildMenu(perfil: string): MenuGroup[] {
+  const base = menuArtista.map((grupo) => ({ ...grupo, items: [...grupo.items] }));
+  if (perfil === "colecionador") {
+    const acervoIdx = base.findIndex((g) => g.label === "Acervo");
+    if (acervoIdx !== -1) {
+      const obrasIdx = base[acervoIdx].items.findIndex((i) => i.id === "obras");
+      if (obrasIdx >= 0) {
+        base[acervoIdx].items.splice(obrasIdx, 0, { id: "artistas", title: "Artistas", icon: Palette });
+      } else {
+        base[acervoIdx].items.unshift({ id: "artistas", title: "Artistas", icon: Palette });
+      }
+    }
+  }
+  return base;
+}
 
 const titulosPagina: Record<string, string> = {
+  artistas: "Artistas",
   obras: "Meu Acervo",
   "perfil-emissor": "Perfil",
   bio: "Bio",
@@ -387,10 +393,9 @@ function AppSidebar({
   premium: boolean;
   onUpsell: () => void;
 }) {
-  const isColecionador = perfil === "colecionador";
-  const grupos = isColecionador ? menuColecionador : menuArtista;
+  const grupos = buildMenu(perfil);
 
-  const sidebarUser = isColecionador
+  const sidebarUser = perfil === "colecionador"
     ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
     : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
 
@@ -756,6 +761,7 @@ function NovaObraModal({
   tiragensLista,
   exposicoesLista,
   representacoesLista,
+  artistasLista,
 }: {
   open: boolean;
   onClose: () => void;
@@ -764,9 +770,11 @@ function NovaObraModal({
   tiragensLista: Tiragem[];
   exposicoesLista: string[];
   representacoesLista: string[];
+  artistasLista: Artista[];
 }) {
   const [idInventario] = useState(gerarIdInventario);
   const [titulo, setTitulo] = useState("");
+  const [artistaSelecionado, setArtistaSelecionado] = useState("");
   const [tecnica, setTecnica] = useState("");
   const [ano, setAno] = useState("");
   const [dimensoes, setDimensoes] = useState("");
@@ -789,6 +797,7 @@ function NovaObraModal({
   function handleSalvar() {
     alert("Obra salva com sucesso!" + (tiragemAtual ? ` Certificado gerado automaticamente para ${tiragemAtual.titulo} — ${tipoNumeracao === "pa" ? "P.A." : ""} ${numeracao}.` : ""));
     setTitulo("");
+    setArtistaSelecionado("");
     setTecnica("");
     setAno("");
     setDimensoes("");
@@ -844,6 +853,20 @@ function NovaObraModal({
               onChange={(e) => setTitulo(e.target.value)}
               data-testid="input-titulo-obra"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Artista <span className="text-destructive">*</span></Label>
+            <Select value={artistaSelecionado} onValueChange={setArtistaSelecionado}>
+              <SelectTrigger data-testid="select-artista-obra">
+                <SelectValue placeholder="Selecione o artista" />
+              </SelectTrigger>
+              <SelectContent>
+                {artistasLista.map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -1062,12 +1085,53 @@ function NovaObraModal({
           >
             Cancelar
           </Button>
-          <Button onClick={handleSalvar} data-testid="button-salvar-obra">
+          <Button onClick={handleSalvar} disabled={!artistaSelecionado} data-testid="button-salvar-obra">
             Salvar Obra
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ArtistasPage({
+  artistas,
+  obras,
+}: {
+  artistas: Artista[];
+  obras: Obra[];
+}) {
+  return (
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <p className="text-sm text-muted-foreground" data-testid="text-artistas-desc">
+        Artistas que compõem a sua coleção.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {artistas.map((artista) => {
+          const qtd = obras.filter((o) => o.artistaId === artista.id).length;
+          return (
+            <Card key={artista.id} className="p-5" data-testid={`card-artista-${artista.id}`}>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14" data-testid={`avatar-artista-${artista.id}`}>
+                  {artista.foto ? <AvatarImage src={artista.foto} alt={artista.nome} /> : null}
+                  <AvatarFallback>{artista.iniciais}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-foreground truncate" data-testid={`text-nome-artista-${artista.id}`}>
+                    {artista.nome}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{artista.anos}</p>
+                  <p className="text-xs text-muted-foreground mt-1" data-testid={`text-qtd-obras-artista-${artista.id}`}>
+                    {qtd} {qtd === 1 ? "obra" : "obras"} no acervo
+                  </p>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1292,9 +1356,11 @@ function PaginaObras({
   onVisualizar: (obra: Obra) => void;
   onGerarCatalogo: (obrasSelecionadas: Obra[]) => void;
 }) {
-  const isColecionador = perfil === "colecionador";
+  const hasMultipleArtists = artistas.length > 1;
   const [modoSelecao, setModoSelecao] = useState(false);
   const [selecionadas, setSelecionadas] = useState<Set<number>>(new Set());
+
+  const obrasFiltradas = filtro === "todos" ? obras : obras.filter((o) => o.artistaId === filtro);
 
   function toggleSelecao(id: number) {
     setSelecionadas((prev) => {
@@ -1306,15 +1372,15 @@ function PaginaObras({
   }
 
   function selecionarTodas() {
-    if (selecionadas.size === obras.length) {
+    if (selecionadas.size === obrasFiltradas.length) {
       setSelecionadas(new Set());
     } else {
-      setSelecionadas(new Set(obras.map((o) => o.id)));
+      setSelecionadas(new Set(obrasFiltradas.map((o) => o.id)));
     }
   }
 
   function handleGerarCatalogo() {
-    const obrasSel = obras.filter((o) => selecionadas.has(o.id));
+    const obrasSel = obrasFiltradas.filter((o) => selecionadas.has(o.id));
     onGerarCatalogo(obrasSel);
     setModoSelecao(false);
     setSelecionadas(new Set());
@@ -1322,82 +1388,81 @@ function PaginaObras({
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {!isColecionador && (
-        <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
-          <Button
-            variant={modoSelecao ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              setModoSelecao(!modoSelecao);
-              if (modoSelecao) setSelecionadas(new Set());
-            }}
-            data-testid="button-modo-selecao"
-          >
-            <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
-            {modoSelecao ? "Cancelar Seleção" : "Selecionar"}
-          </Button>
-
-          {modoSelecao && (
-            <>
+      <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
+        {hasMultipleArtists && (
+          <>
+            {[
+              { id: "todos", label: "Ver Todos" },
+              ...artistas.map((a) => ({ id: a.id, label: a.nome })),
+            ].map((item) => (
               <Button
-                variant="outline"
+                key={item.id}
+                variant={filtro === item.id ? "default" : "outline"}
                 size="sm"
-                onClick={selecionarTodas}
-                data-testid="button-selecionar-todas"
+                onClick={() => setFiltro(item.id)}
+                data-testid={`button-filtro-${item.id}`}
               >
-                {selecionadas.size === obras.length ? (
-                  <>
-                    <Square className="mr-1.5 h-3.5 w-3.5" />
-                    Desmarcar Todas
-                  </>
-                ) : (
-                  <>
-                    <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
-                    Selecionar Todas
-                  </>
-                )}
+                {item.label}
               </Button>
+            ))}
+            <Separator orientation="vertical" className="h-6 mx-1" />
+          </>
+        )}
 
-              <Button
-                size="sm"
-                disabled={selecionadas.size === 0}
-                onClick={handleGerarCatalogo}
-                data-testid="button-gerar-catalogo"
-              >
-                <BookOpen className="mr-1.5 h-3.5 w-3.5" />
-                Gerar Catálogo ({selecionadas.size})
-              </Button>
-            </>
-          )}
-        </div>
-      )}
+        <Button
+          variant={modoSelecao ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setModoSelecao(!modoSelecao);
+            if (modoSelecao) setSelecionadas(new Set());
+          }}
+          data-testid="button-modo-selecao"
+        >
+          <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
+          {modoSelecao ? "Cancelar Seleção" : "Selecionar"}
+        </Button>
 
-      {isColecionador && (
-        <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
-          {[
-            { id: "todos", label: "Ver Todos" },
-            ...artistas.map((a) => ({ id: a.id, label: a.nome })),
-          ].map((item) => (
+        {modoSelecao && (
+          <>
             <Button
-              key={item.id}
-              variant={filtro === item.id ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={() => setFiltro(item.id)}
-              data-testid={`button-filtro-${item.id}`}
+              onClick={selecionarTodas}
+              data-testid="button-selecionar-todas"
             >
-              {item.label}
+              {selecionadas.size === obrasFiltradas.length ? (
+                <>
+                  <Square className="mr-1.5 h-3.5 w-3.5" />
+                  Desmarcar Todas
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="mr-1.5 h-3.5 w-3.5" />
+                  Selecionar Todas
+                </>
+              )}
             </Button>
-          ))}
-        </div>
-      )}
+
+            <Button
+              size="sm"
+              disabled={selecionadas.size === 0}
+              onClick={handleGerarCatalogo}
+              data-testid="button-gerar-catalogo"
+            >
+              <BookOpen className="mr-1.5 h-3.5 w-3.5" />
+              Gerar Catálogo ({selecionadas.size})
+            </Button>
+          </>
+        )}
+      </div>
 
       <div className="p-6">
-        {isColecionador ? (
-          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} onCertificado={onCertificado} onVisualizar={onVisualizar} />
+        {hasMultipleArtists && filtro === "todos" ? (
+          <ArtistaAcervo artistas={artistas} obras={obrasFiltradas} filtro={filtro} onCertificado={onCertificado} onVisualizar={onVisualizar} />
         ) : (
           <AcervoSimples
             artistas={artistas}
-            obras={obras}
+            obras={obrasFiltradas}
             onCertificado={onCertificado}
             onVisualizar={onVisualizar}
             modoSelecao={modoSelecao}
@@ -1631,6 +1696,8 @@ export default function Dashboard() {
 
   function renderConteudo() {
     switch (paginaAtiva) {
+      case "artistas":
+        return <ArtistasPage artistas={artistas} obras={obras} />;
       case "obras":
         return (
           <PaginaObras
@@ -1782,6 +1849,7 @@ export default function Dashboard() {
         tiragensLista={tiragensLista}
         exposicoesLista={exposicoesLista}
         representacoesLista={representacoesLista}
+        artistasLista={artistas}
       />
 
       <NovoCatalogoModal
