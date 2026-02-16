@@ -145,10 +145,10 @@ function AudienceSection() {
               <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary/10">
                 <item.icon className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="mt-5 text-xl font-semibold text-foreground">
+              <h3 className="mt-5 text-xl font-semibold text-foreground" data-testid={`text-audience-title-${idx}`}>
                 {item.title}
               </h3>
-              <p className="mt-3 text-muted-foreground leading-relaxed">
+              <p className="mt-3 text-muted-foreground leading-relaxed" data-testid={`text-audience-desc-${idx}`}>
                 {item.description}
               </p>
             </Card>
@@ -207,10 +207,10 @@ function FeaturesSection() {
                 <item.icon className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-foreground">
+                <h3 className="text-base font-semibold text-foreground" data-testid={`text-feature-title-${idx}`}>
                   {item.title}
                 </h3>
-                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed" data-testid={`text-feature-desc-${idx}`}>
                   {item.description}
                 </p>
               </div>
@@ -267,40 +267,34 @@ function PricingSection() {
 
   return (
     <section className="w-full bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-20 md:py-28">
+      <div className="mx-auto max-w-6xl px-6 py-20 md:py-28 text-center">
         <h2
-          className="text-3xl md:text-4xl font-semibold tracking-tight text-center text-foreground"
+          className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground"
           data-testid="text-pricing-title"
         >
           Planos e Preços
         </h2>
-        <p className="mt-4 text-center text-muted-foreground text-lg max-w-xl mx-auto">
+        <p className="mt-4 text-muted-foreground text-lg max-w-xl mx-auto">
           Escolha o plano ideal para sua necessidade.
         </p>
 
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <button
+        <div className="mt-8 inline-flex items-center rounded-md border p-1">
+          <Button
             onClick={() => setAnnual(false)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              !annual
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground"
-            }`}
+            variant={!annual ? "default" : "ghost"}
+            size="sm"
             data-testid="button-pricing-monthly"
           >
             Mensal
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setAnnual(true)}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              annual
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground"
-            }`}
+            variant={annual ? "default" : "ghost"}
+            size="sm"
             data-testid="button-pricing-annual"
           >
             Anual
-          </button>
+          </Button>
         </div>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
