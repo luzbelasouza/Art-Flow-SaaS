@@ -59,8 +59,18 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas. ERP
 
 ## Modelo Freemium
 - **Gratuito:** 5 obras, 1 certificado, 1 catálogo
-- **Premium (R$49,90/mês):** Ilimitado, sem marca d'água, acesso a Oportunidades
-- Selos PREMIUM dourados na sidebar, UpsellModal, marca d'água em certificados/catálogos (plano gratuito)
+- **Premium (R$49,90/mês):** Ilimitado, sem marca d'água, acesso a todos os módulos
+- Selo dourado discreto (P) nos itens: Mapa da Obra, Representação, Empréstimo/Doação, Leilões Públicos, Armazenamento, Tutores Online, Cursos
+- Grupos inteiramente premium (coroa dourada no label): Comercial, Oportunidade, Mercado
+- Clique em item (P) ou item de grupo premium → UpsellModal (R$49,90/mês)
+- Marca d'água em certificados/catálogos (plano gratuito)
+
+## Visibilidade por Perfil
+- **Artista exclusivo:** Representação, Convocatória, Venda sua Arte, Tutores Online, Cursos
+- **Colecionador exclusivo:** Empréstimo/Doação
+- **Colecionador/Galeria:** Artistas, Leilões Públicos, Avaliação, Seja um Tutor, Leilão Art Flow
+- **Oculto para Galeria:** Consignação
+- Sidebar adapta instantaneamente ao trocar perfil (localStorage "artflow_profile")
 
 ## Preferências do Usuário
 - Todo o sistema em pt-BR (interface, botões, código)
