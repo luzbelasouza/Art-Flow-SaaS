@@ -62,9 +62,9 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/vendas.tsx` - Dashboard financeiro com gráfico e histórico de vendas
 - `client/src/pages/representacao.tsx` - Galerias parceiras e marchands com botão "+ Adicionar Representação"
 - `client/src/pages/contatos.tsx` - 3 contatos (João Vicente, Angela Marques, Galeria Graphitte)
-- `client/src/pages/localizacao.tsx` - 6 endereços (3 feiras + 3 vendas)
+- `client/src/pages/localizacao.tsx` - 8 endereços (3 feiras + 3 vendas + 1 empréstimo + 1 doação)
 - `client/src/pages/producao.tsx` - Produção (Obras Únicas) com cronômetros + Tiragens (Múltiplos) com contador de disponibilidade
-- `client/src/pages/colecoes.tsx` - Coleção "Vida no Campo" com 2 obras agrupadas
+- `client/src/pages/colecoes.tsx` - Coleção "Vida no Campo" com 2 obras agrupadas, botão "Visualizar" com ficha técnica completa e impressão
 - `client/src/pages/documentos.tsx` - Gestão de documentos estilo Drive com busca e categorias
 - `client/src/pages/certificado.tsx` - Certificado de Autenticidade em tela cheia com impressão A4
 - `client/src/pages/placeholder.tsx` - Componente placeholder reutilizável
@@ -73,9 +73,10 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/perfil-emissor.tsx` - Formulário do emissor com persistência localStorage
 - `client/src/pages/catalogo.tsx` - Repositório de catálogos e visualizador de documento catálogo
 - `client/src/pages/oportunidades.tsx` - Central de Oportunidades Premium (Expo, Ocupação, Edital, Consignação, Feiras, Avaliação, Leilões, Caixa de Entrada)
-- `client/src/pages/emprestimo-doacao.tsx` - Empréstimo / Doação (exclusivo Colecionador) com busca dinâmica de obras
+- `client/src/pages/emprestimo-doacao.tsx` - Empréstimo / Doação (exclusivo Colecionador) com busca dinâmica de obras, Local de Destino dinâmico filtrado por tipo, atualização automática de localização da obra
 
 ## Alterações Recentes
+- 2026-02-16: Refinamentos de Logística e Visualização: Empréstimo/Doação com campo obrigatório "Local de Destino" (dropdown dinâmico filtrado por tipo), Coleções com botão "Visualizar" (ficha técnica completa + Imprimir Coleção), Exposições segmentadas por perfil (Colecionador: "Aberta ao Público"/"Em Breve", Artista: "Inscrições Abertas"), atualização automática de localização ao registrar empréstimo
 - 2026-02-16: Ajustes exclusivos Colecionador: seleção de obras funcional com checkbox em ArtistaAcervo, "Produção e Tiragem" substituída por "Empréstimo / Doação" com modal + busca dinâmica por nome/ID, Localização com tipos Empréstimo e Doação, Expo sem prazo de inscrição, Ocupação e Edital removidos das Oportunidades
 - 2026-02-16: Refatoração Global - Unificação de perfis Artista/Colecionador: mesma sidebar e módulos para ambos, buildMenu(perfil) substitui menus separados, sub-aba "Artistas" no Acervo do Colecionador antes de Obras, PaginaObras unificada com seleção/catálogo para todos, campo "Artista" obrigatório no NovaObraModal (Select), limites freemium e Oportunidades iguais para ambos
 - 2026-02-16: Leilões Públicos reformulado - Fluxo por catálogo: seleção de leilões (checkboxes + Selecionar Todos), botão "Enviar Catálogo para Captação", modal de seleção de catálogo com miniatura da capa, termos de responsabilidade obrigatórios, notificação automática na Caixa de Entrada confirmando envio

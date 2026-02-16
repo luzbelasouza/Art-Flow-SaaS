@@ -64,7 +64,8 @@ const exposicoesIniciais: Exposicao[] = [
   },
 ];
 
-export default function Exposicoes({ onNovaExposicao }: { onNovaExposicao?: (nome: string) => void }) {
+export default function Exposicoes({ onNovaExposicao, perfil }: { onNovaExposicao?: (nome: string) => void; perfil?: string }) {
+  const isColecionador = perfil === "colecionador";
   const [exposicoes, setExposicoes] = useState<Exposicao[]>(exposicoesIniciais);
   const [modalAberto, setModalAberto] = useState(false);
   const [nome, setNome] = useState("");
@@ -145,7 +146,10 @@ export default function Exposicoes({ onNovaExposicao }: { onNovaExposicao?: (nom
                   variant={expo.status === "futura" ? "default" : "secondary"}
                   data-testid={`badge-status-expo-${expo.id}`}
                 >
-                  {expo.status === "futura" ? "Futura" : "Realizada"}
+                  {isColecionador
+                    ? (expo.status === "futura" ? "Em Breve" : "Aberta ao Público")
+                    : (expo.status === "futura" ? "Inscrições Abertas" : "Realizada")
+                  }
                 </Badge>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

@@ -71,6 +71,20 @@ const locaisIniciais: Local[] = [
     tipo: "venda",
     detalhe: "Os Respigadores (Vendida)",
   },
+  {
+    id: "museu-ipiranga",
+    nome: "Museu do Ipiranga",
+    endereco: "Parque da Independência, São Paulo, SP – Brasil",
+    tipo: "emprestimo",
+    detalhe: "Empréstimo para exposição temporária",
+  },
+  {
+    id: "instituto-cultural",
+    nome: "Instituto Cultural Itaú",
+    endereco: "Av. Paulista, 149, São Paulo, SP – Brasil",
+    tipo: "doacao",
+    detalhe: "Doação para acervo permanente",
+  },
 ];
 
 const tipoLabels: Record<string, string> = {
@@ -82,7 +96,10 @@ const tipoLabels: Record<string, string> = {
   doacao: "Doação",
 };
 
-export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?: (nome: string) => void }) {
+export { locaisIniciais };
+export type { Local };
+
+export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?: (nome: string, tipo?: string) => void }) {
   const [locais, setLocais] = useState<Local[]>(locaisIniciais);
   const [modalAberto, setModalAberto] = useState(false);
   const [nome, setNome] = useState("");
@@ -100,7 +117,7 @@ export default function Localizacao({ onNovaLocalizacao }: { onNovaLocalizacao?:
       detalhe: detalhe.trim() || "",
     };
     setLocais([...locais, novo]);
-    onNovaLocalizacao?.(nome.trim());
+    onNovaLocalizacao?.(nome.trim(), novo.tipo);
     setNome("");
     setEndereco("");
     setTipo("");

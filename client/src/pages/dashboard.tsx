@@ -102,7 +102,7 @@ import Exposicoes, { exposicoesIniciais, type Exposicao } from "@/pages/exposico
 import Vendas from "@/pages/vendas";
 import RepresentacaoPage, { representacoesIniciais, type Representacao } from "@/pages/representacao";
 import Contatos from "@/pages/contatos";
-import Localizacao from "@/pages/localizacao";
+import Localizacao, { locaisIniciais, type Local } from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
 import EmprestimoDoacaoPage from "@/pages/emprestimo-doacao";
 import Colecoes from "@/pages/colecoes";
@@ -509,10 +509,12 @@ function VisualizarObraModal({
   obra,
   artista,
   onClose,
+  localizacaoOverride,
 }: {
   obra: Obra;
   artista?: Artista;
   onClose: () => void;
+  localizacaoOverride?: string;
 }) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
   const colecao = colecoesObras[obra.id] || "—";
@@ -535,7 +537,7 @@ function VisualizarObraModal({
 
   const statusObra = statusMap[obra.inventarioId] || "Acervo Pessoal";
   const precoObra = precoMap[obra.inventarioId] || "Sob consulta";
-  const locObra = locMap[obra.inventarioId] || "—";
+  const locObra = localizacaoOverride || locMap[obra.inventarioId] || "—";
 
   function handleImprimir() {
     const printWindow = window.open("", "_blank");
@@ -1631,6 +1633,8 @@ export default function Dashboard() {
 
   const [colecoesLista, setColecoesLista] = useState<string[]>([...colecoesDisponiveis]);
   const [localizacoesLista, setLocalizacoesLista] = useState<string[]>([...localizacoesDisponiveis]);
+  const [locaisCompletos, setLocaisCompletos] = useState<Local[]>([...locaisIniciais]);
+  const [localizacaoObras, setLocalizacaoObras] = useState<Record<number, string>>({});
   const [tiragensLista, setTiragensLista] = useState<Tiragem[]>([...tiragensIniciais]);
   const [exposicoesLista, setExposicoesLista] = useState<string[]>(exposicoesIniciais.map((e) => e.nome));
   const [representacoesLista, setRepresentacoesLista] = useState<string[]>(representacoesIniciais.map((r) => r.nome));
@@ -1746,7 +1750,7 @@ export default function Dashboard() {
       case "mapa-obra":
         return <MapaObra />;
       case "exposicoes":
-        return <Exposicoes onNovaExposicao={(nome) => setExposicoesLista((prev) => [...prev, nome])} />;
+        return <Exposicoes onNovaExposicao={(nome) => setExposicoesLista((prev) => [...prev, nome])} perfil={perfil} />;
       case "vendas":
         return <Vendas />;
       case "representacao":
@@ -1754,11 +1758,19 @@ export default function Dashboard() {
       case "contatos":
         return <Contatos />;
       case "localizacao":
-        return <Localizacao onNovaLocalizacao={(nome) => setLocalizacoesLista((prev) => [...prev, nome])} />;
+        return <Localizacao onNovaLocalizacao={(nome, tipo) => {
+          setLocalizacoesLista((prev) => [...prev, nome]);
+          if (tipo) {
+            setLocaisCompletos((prev) => [...prev, { id: `loc-${Date.now()}`, nome, endereco: "", tipo: tipo as Local["tipo"], detalhe: "" }]);
+          }
+        }} />;
       case "producao":
         return <Producao onNovaTiragem={(tir) => setTiragensLista((prev) => [...prev, tir])} />;
       case "emprestimo-doacao":
-        return <EmprestimoDoacaoPage obras={obras} />;
+        return <EmprestimoDoacaoPage obras={obras} locais={locaisCompletos} onRegistroSalvo={(obraId: number, localNome: string) => {
+          setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
+          toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
+        }} />;
       case "colecoes":
         return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
@@ -1924,6 +1936,7 @@ export default function Dashboard() {
           obra={obraVisualizar}
           artista={artistas.find((a) => a.id === obraVisualizar.artistaId)}
           onClose={() => setObraVisualizar(null)}
+          localizacaoOverride={localizacaoObras[obraVisualizar.id]}
         />
       )}
     </SidebarProvider>

@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Search, HandHeart, Gift, Calendar } from "lucide-react";
+import { Plus, Search, HandHeart, Gift, Calendar, MapPin } from "lucide-react";
 
 interface Obra {
   id: number;
@@ -31,12 +31,21 @@ interface Obra {
   imagem: string;
 }
 
+interface LocalInfo {
+  id: string;
+  nome: string;
+  endereco: string;
+  tipo: string;
+  detalhe: string;
+}
+
 interface Registro {
   id: string;
   obraId: number;
   obraTitulo: string;
   obraInventarioId: string;
   tipo: "emprestimo" | "doacao";
+  localDestino: string;
   data: string;
 }
 
@@ -45,12 +54,13 @@ const tipoLabels: Record<string, string> = {
   doacao: "Doação",
 };
 
-export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
+export default function EmprestimoDoacaoPage({ obras, locais, onRegistroSalvo }: { obras: Obra[]; locais?: LocalInfo[]; onRegistroSalvo?: (obraId: number, localNome: string) => void }) {
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null);
   const [tipo, setTipo] = useState("");
+  const [localDestino, setLocalDestino] = useState("");
 
   const sugestoes = useMemo(() => {
     if (!busca.trim()) return [];
@@ -62,25 +72,38 @@ export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
     ).slice(0, 6);
   }, [busca, obras]);
 
+  const locaisFiltrados = useMemo(() => {
+    if (!tipo || !locais) return [];
+    return locais.filter((l) => l.tipo === tipo);
+  }, [tipo, locais]);
+
   function handleSelecionarObra(obra: Obra) {
     setObraSelecionada(obra);
     setBusca(obra.titulo);
   }
 
+  function handleTipoChange(novoTipo: string) {
+    setTipo(novoTipo);
+    setLocalDestino("");
+  }
+
   function handleSalvar() {
-    if (!obraSelecionada || !tipo) return;
+    if (!obraSelecionada || !tipo || !localDestino) return;
     const novo: Registro = {
       id: `reg-${Date.now()}`,
       obraId: obraSelecionada.id,
       obraTitulo: obraSelecionada.titulo,
       obraInventarioId: obraSelecionada.inventarioId,
       tipo: tipo as Registro["tipo"],
+      localDestino,
       data: new Date().toLocaleDateString("pt-BR"),
     };
     setRegistros([...registros, novo]);
+    onRegistroSalvo?.(obraSelecionada.id, localDestino);
     setBusca("");
     setObraSelecionada(null);
     setTipo("");
+    setLocalDestino("");
     setModalAberto(false);
   }
 
@@ -88,6 +111,7 @@ export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
     setBusca("");
     setObraSelecionada(null);
     setTipo("");
+    setLocalDestino("");
     setModalAberto(true);
   }
 
@@ -144,6 +168,10 @@ export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
                       </Badge>
                     </div>
                     <p className="text-xs font-mono text-muted-foreground">{reg.obraInventarioId}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <MapPin className="h-3 w-3 flex-shrink-0" />
+                      <span data-testid={`text-registro-destino-${reg.id}`}>{reg.localDestino}</span>
+                    </p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Calendar className="h-3 w-3 flex-shrink-0" />
                       Registrado em {reg.data}
@@ -212,7 +240,7 @@ export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
             </div>
             <div className="space-y-1.5">
               <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
+              <Select value={tipo} onValueChange={handleTipoChange}>
                 <SelectTrigger data-testid="select-tipo-registro">
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
@@ -222,10 +250,36 @@ export default function EmprestimoDoacaoPage({ obras }: { obras: Obra[] }) {
                 </SelectContent>
               </Select>
             </div>
+            {tipo && (
+              <div className="space-y-1.5">
+                <Label>Local de Destino</Label>
+                {locaisFiltrados.length > 0 ? (
+                  <Select value={localDestino} onValueChange={setLocalDestino}>
+                    <SelectTrigger data-testid="select-local-destino">
+                      <SelectValue placeholder="Selecione o local de destino" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locaisFiltrados.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.nome} data-testid={`option-local-destino-${loc.id}`}>
+                          <span className="flex items-center gap-2">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                            {loc.nome}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-xs text-muted-foreground rounded-md bg-muted/50 px-3 py-2.5" data-testid="text-sem-locais">
+                    Nenhum local de {tipoLabels[tipo]?.toLowerCase()} cadastrado. Adicione um na aba Localização.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => setModalAberto(false)} data-testid="button-cancelar-registro">Cancelar</Button>
-            <Button onClick={handleSalvar} disabled={!obraSelecionada || !tipo} data-testid="button-salvar-registro">Salvar Registro</Button>
+            <Button onClick={handleSalvar} disabled={!obraSelecionada || !tipo || !localDestino} data-testid="button-salvar-registro">Salvar Registro</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
