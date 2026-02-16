@@ -255,11 +255,10 @@ const menuBase: MenuGroup[] = [
   },
   {
     label: "Comercial",
-    premiumGroup: true,
     items: [
-      { id: "vendas", title: "Vendas", icon: BarChart3, premium: true },
-      { id: "oport-consignacao", title: "Consignação", icon: Tag, premium: true },
-      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag, premium: true },
+      { id: "vendas", title: "Vendas", icon: BarChart3 },
+      { id: "oport-consignacao", title: "Consignação", icon: Tag },
+      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag },
     ],
   },
   {
@@ -292,7 +291,7 @@ const menuBase: MenuGroup[] = [
 
 const artistaOnly = new Set(["representacao", "convocatoria", "venda-arte", "tutores-online", "cursos"]);
 const colecionadorOnly = new Set(["emprestimo-doacao"]);
-const colecionadorGaleriaOnly = new Set(["artistas", "leiloes-acervo", "oport-avaliacao", "seja-tutor", "leilao-artflow"]);
+const colecionadorGaleriaOnly = new Set(["artistas", "leiloes-acervo", "seja-tutor", "leilao-artflow"]);
 const hideForGaleria = new Set(["oport-consignacao"]);
 
 function buildMenu(perfil: string): MenuGroup[] {
