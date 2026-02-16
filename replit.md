@@ -26,7 +26,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `/dashboard` - Dashboard (com navegação interna via sidebar)
 
 ### Páginas Internas do Dashboard (Perfil Artista)
-- **Perfil:** Bio (detalhada), Exposições, Agenda, Mapa da Obra (detalhada)
+- **Perfil:** Perfil (dados do emissor), Bio (detalhada), Exposições, Agenda, Mapa da Obra (detalhada)
 - **Acervo:** Obras, Coleções/Séries, Produção e Tiragem
 - **Logística:** Localização
 - **Comercial:** Contatos, Vendas
@@ -58,7 +58,11 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/certificado.tsx` - Certificado de Autenticidade em tela cheia com impressão A4
 - `client/src/pages/placeholder.tsx` - Componente placeholder reutilizável
 
+## Arquivos Importantes (cont.)
+- `client/src/pages/perfil-emissor.tsx` - Formulário do emissor com persistência localStorage
+
 ## Alterações Recentes
+- 2026-02-16: Ajustes de personalização - Aba Perfil (emissor) com formulário completo, linha do emissor no cabeçalho do certificado, aviso amigável se perfil incompleto
 - 2026-02-16: Etapa 11 - Coleções/Séries (Vida no Campo: Pontoise), Documentos (busca + categorias + 3 arquivos), selos de coleção nos cards de obras
 - 2026-02-16: Etapa 10 - Exposições, Vendas (R$135k, +15%), Agenda, Contatos, Localização, Produção com cronômetros, Mapa da Obra com popups
 - 2026-02-16: Etapa 9 - Menu ERP Cultural (5 grupos), Bio com avatar/textarea, Mapa da Obra com pins, modal Nova Obra expandido

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { X, Printer } from "lucide-react";
+import { X, Printer, AlertCircle } from "lucide-react";
 import pissarroImg from "@assets/pissarro_1771198589992.png";
 
 interface CertificadoProps {
@@ -13,7 +13,9 @@ interface CertificadoProps {
     dimensoes: string;
     imagem: string;
   };
+  emissorLinha?: string | null;
   onClose: () => void;
+  onIrPerfil?: () => void;
 }
 
 const bioTexto =
@@ -23,7 +25,7 @@ function handleImprimir() {
   window.print();
 }
 
-export default function Certificado({ obra, onClose }: CertificadoProps) {
+export default function Certificado({ obra, emissorLinha, onClose, onIrPerfil }: CertificadoProps) {
   return (
     <>
       <style>{`
@@ -73,6 +75,33 @@ export default function Certificado({ obra, onClose }: CertificadoProps) {
           </div>
         </div>
 
+        {!emissorLinha && (
+          <div className="no-print max-w-[210mm] mx-auto mt-4 px-8 sm:px-12">
+            <div
+              className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30"
+              data-testid="aviso-perfil-incompleto"
+            >
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  Por favor, complete seus dados na aba Perfil para emitir certificados com identificação do emissor.
+                </p>
+                {onIrPerfil && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={onIrPerfil}
+                    data-testid="button-ir-perfil"
+                  >
+                    Ir para Perfil
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div
           id="certificado-print"
           className="max-w-[210mm] mx-auto bg-white text-black p-8 sm:p-12 my-6 sm:my-10"
@@ -85,16 +114,16 @@ export default function Certificado({ obra, onClose }: CertificadoProps) {
             >
               CERTIFICADO <span className="italic">de</span> Autenticidade
             </h1>
-            <div className="mt-3 flex items-center justify-center gap-3">
-              <Separator className="w-16 bg-black/20" />
-              <span
-                className="font-mono text-sm tracking-widest text-black/60"
-                data-testid="text-cert-id"
+
+            {emissorLinha && (
+              <p
+                className="mt-3 text-[11px] tracking-[0.15em] text-black/50 leading-relaxed"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+                data-testid="text-cert-emissor"
               >
-                {obra.inventarioId}
-              </span>
-              <Separator className="w-16 bg-black/20" />
-            </div>
+                {emissorLinha}
+              </p>
+            )}
           </div>
 
           <Separator className="bg-black/10 mb-8" />

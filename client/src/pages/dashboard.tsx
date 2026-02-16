@@ -60,6 +60,8 @@ import {
   Map,
   Search,
   Eye,
+  UserCog,
+  AlertCircle,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -87,6 +89,7 @@ import Producao from "@/pages/producao";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
+import PerfilEmissor, { carregarDadosEmissor, formatarLinhaEmissor } from "@/pages/perfil-emissor";
 
 const colecoesObras: Record<number, string> = {
   2: "Vida no Campo: A Série de Pontoise",
@@ -156,6 +159,7 @@ const menuArtista: MenuGroup[] = [
   {
     label: "Perfil",
     items: [
+      { id: "perfil-emissor", title: "Perfil", icon: UserCog },
       { id: "bio", title: "Bio", icon: User },
       { id: "exposicoes", title: "Exposições", icon: Calendar },
       { id: "agenda", title: "Agenda", icon: Calendar },
@@ -205,6 +209,7 @@ const menuColecionador: MenuGroup[] = [
 
 const titulosPagina: Record<string, string> = {
   obras: "Meu Acervo",
+  "perfil-emissor": "Perfil",
   bio: "Bio",
   exposicoes: "Exposições",
   agenda: "Agenda",
@@ -852,6 +857,8 @@ export default function Dashboard() {
             onCertificado={setObraCertificado}
           />
         );
+      case "perfil-emissor":
+        return <PerfilEmissor perfilUsuario={perfil} />;
       case "bio":
         return <Bio />;
       case "mapa-obra":
@@ -932,12 +939,21 @@ export default function Dashboard() {
         onClose={() => setModalAberto(false)}
       />
 
-      {obraCertificado && (
-        <Certificado
-          obra={obraCertificado}
-          onClose={() => setObraCertificado(null)}
-        />
-      )}
+      {obraCertificado && (() => {
+        const dadosEmissor = carregarDadosEmissor();
+        const emissorLinha = dadosEmissor ? formatarLinhaEmissor(dadosEmissor) : null;
+        return (
+          <Certificado
+            obra={obraCertificado}
+            emissorLinha={emissorLinha}
+            onClose={() => setObraCertificado(null)}
+            onIrPerfil={() => {
+              setObraCertificado(null);
+              setPaginaAtiva("perfil-emissor");
+            }}
+          />
+        );
+      })()}
     </SidebarProvider>
   );
 }
