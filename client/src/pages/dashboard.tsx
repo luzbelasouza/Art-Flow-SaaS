@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Avatar,
   AvatarImage,
   AvatarFallback,
@@ -24,6 +31,7 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -39,6 +47,17 @@ import {
   Plus,
   Upload,
   Pencil,
+  User,
+  Calendar,
+  MapPin,
+  Layers,
+  Printer,
+  Navigation,
+  Users,
+  BarChart3,
+  FileText,
+  ShieldCheck,
+  Map,
 } from "lucide-react";
 
 import colheitaImg from "@assets/colheita_1771198582489.png";
@@ -53,6 +72,10 @@ import vistaImg from "@assets/4-Vista_1771200555856.png";
 import cassattImg from "@assets/5-Cassat__1771200555857.png";
 import chestnutImg from "@assets/6-chestnut__1771200555857.png";
 import portraitImg from "@assets/7-portrait__1771200555858.png";
+
+import Placeholder from "@/pages/placeholder";
+import Bio from "@/pages/bio";
+import MapaObra from "@/pages/mapa-obra";
 
 const perfilLabels: Record<string, string> = {
   artista: "Artista",
@@ -100,22 +123,101 @@ const obrasColecionador: Obra[] = [
   { id: 21, titulo: "Portrait of a Young Girl", artistaId: "cassatt", tecnica: "Óleo sobre tela", ano: 1899, imagem: portraitImg },
 ];
 
-const menuItems = [
-  { title: "Meu Acervo", icon: Image, active: true },
-  { title: "Certificados", icon: Award, active: false },
-  { title: "Configurações", icon: Settings, active: false },
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: typeof Image;
+}
+
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+}
+
+const menuArtista: MenuGroup[] = [
+  {
+    label: "Perfil",
+    items: [
+      { id: "bio", title: "Bio", icon: User },
+      { id: "exposicoes", title: "Exposições", icon: Calendar },
+      { id: "agenda", title: "Agenda", icon: Calendar },
+      { id: "mapa-obra", title: "Mapa da Obra", icon: Map },
+    ],
+  },
+  {
+    label: "Acervo",
+    items: [
+      { id: "obras", title: "Obras", icon: Image },
+      { id: "colecoes", title: "Coleções / Séries", icon: Layers },
+      { id: "producao", title: "Produção e Tiragem", icon: Printer },
+    ],
+  },
+  {
+    label: "Logística",
+    items: [
+      { id: "localizacao", title: "Localização", icon: Navigation },
+    ],
+  },
+  {
+    label: "Comercial",
+    items: [
+      { id: "contatos", title: "Contatos", icon: Users },
+      { id: "vendas", title: "Vendas", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Arquivo",
+    items: [
+      { id: "documentos", title: "Documentos", icon: FileText },
+      { id: "certificados", title: "Certificados (COA)", icon: ShieldCheck },
+    ],
+  },
 ];
+
+const menuColecionador: MenuGroup[] = [
+  {
+    label: "Acervo",
+    items: [
+      { id: "obras", title: "Meu Acervo", icon: Image },
+      { id: "certificados", title: "Certificados", icon: Award },
+      { id: "configuracoes", title: "Configurações", icon: Settings },
+    ],
+  },
+];
+
+const titulosPagina: Record<string, string> = {
+  obras: "Meu Acervo",
+  bio: "Bio",
+  exposicoes: "Exposições",
+  agenda: "Agenda",
+  "mapa-obra": "Mapa da Obra",
+  colecoes: "Coleções / Séries",
+  producao: "Produção e Tiragem",
+  localizacao: "Localização",
+  contatos: "Contatos",
+  vendas: "Vendas",
+  documentos: "Documentos",
+  certificados: "Certificados (COA)",
+  configuracoes: "Configurações",
+};
 
 function AppSidebar({
   onSair,
   perfil,
   artistas,
+  paginaAtiva,
+  onNavegar,
 }: {
   onSair: () => void;
   perfil: string;
   artistas: Artista[];
+  paginaAtiva: string;
+  onNavegar: (id: string) => void;
 }) {
-  const sidebarUser = perfil === "colecionador"
+  const isColecionador = perfil === "colecionador";
+  const grupos = isColecionador ? menuColecionador : menuArtista;
+
+  const sidebarUser = isColecionador
     ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
     : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
 
@@ -131,23 +233,27 @@ function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    isActive={item.active}
-                    data-testid={`button-menu-${item.title.toLowerCase().replace(/\s/g, "-")}`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {grupos.map((grupo) => (
+          <SidebarGroup key={grupo.label}>
+            <SidebarGroupLabel>{grupo.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {grupo.items.map((item) => (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton
+                      isActive={paginaAtiva === item.id}
+                      onClick={() => onNavegar(item.id)}
+                      data-testid={`button-menu-${item.id}`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="p-3 space-y-3">
@@ -237,6 +343,10 @@ function NovaObraModal({
   const [ano, setAno] = useState("");
   const [dimensoes, setDimensoes] = useState("");
   const [preco, setPreco] = useState("");
+  const [status, setStatus] = useState("");
+  const [localizacao, setLocalizacao] = useState("");
+  const [medium, setMedium] = useState("");
+  const [edicao, setEdicao] = useState("");
 
   function handleSalvar() {
     alert("Obra salva com sucesso!");
@@ -245,12 +355,16 @@ function NovaObraModal({
     setAno("");
     setDimensoes("");
     setPreco("");
+    setStatus("");
+    setLocalizacao("");
+    setMedium("");
+    setEdicao("");
     onClose();
   }
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-lg" data-testid="modal-nova-obra">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" data-testid="modal-nova-obra">
         <DialogHeader>
           <DialogTitle data-testid="text-modal-title">
             Cadastrar Nova Obra
@@ -290,6 +404,17 @@ function NovaObraModal({
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label htmlFor="medium">Médium</Label>
+            <Input
+              id="medium"
+              placeholder="Ex: Acrílica, Aquarela, Gravura"
+              value={medium}
+              onChange={(e) => setMedium(e.target.value)}
+              data-testid="input-medium"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="ano">Ano de Criação</Label>
@@ -303,7 +428,7 @@ function NovaObraModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dimensoes">Dimensões</Label>
+              <Label htmlFor="dimensoes">Tamanho</Label>
               <Input
                 id="dimensoes"
                 placeholder="Ex: 100x100 cm"
@@ -314,14 +439,53 @@ function NovaObraModal({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="preco">Preço (R$)</Label>
+              <Input
+                id="preco"
+                placeholder="Ex: 5.000,00"
+                value={preco}
+                onChange={(e) => setPreco(e.target.value)}
+                data-testid="input-preco"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edicao">Edição / Tiragem</Label>
+              <Input
+                id="edicao"
+                placeholder="Ex: 1/50, Única"
+                value={edicao}
+                onChange={(e) => setEdicao(e.target.value)}
+                data-testid="input-edicao"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor="preco">Preço / Valor Estimado (R$)</Label>
+            <Label>Status</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger data-testid="select-status">
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="acervo">Acervo</SelectItem>
+                <SelectItem value="vendida">Vendida</SelectItem>
+                <SelectItem value="consignada">Consignada</SelectItem>
+                <SelectItem value="exposicao">Exposição</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="localizacao">Localização</Label>
             <Input
-              id="preco"
-              placeholder="Ex: 5.000,00"
-              value={preco}
-              onChange={(e) => setPreco(e.target.value)}
-              data-testid="input-preco"
+              id="localizacao"
+              placeholder="Ex: Galeria Arte SP, São Paulo"
+              value={localizacao}
+              onChange={(e) => setLocalizacao(e.target.value)}
+              data-testid="input-localizacao"
             />
           </div>
         </div>
@@ -409,11 +573,64 @@ function AcervoSimples({
   );
 }
 
+function PaginaObras({
+  perfil,
+  artistas,
+  obras,
+  filtro,
+  setFiltro,
+}: {
+  perfil: string;
+  artistas: Artista[];
+  obras: Obra[];
+  filtro: string;
+  setFiltro: (f: string) => void;
+}) {
+  const isColecionador = perfil === "colecionador";
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {isColecionador && (
+        <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
+          {[
+            { id: "todos", label: "Ver Todos" },
+            ...artistas.map((a) => ({ id: a.id, label: a.nome })),
+          ].map((item) => (
+            <Button
+              key={item.id}
+              variant={filtro === item.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFiltro(item.id)}
+              data-testid={`button-filtro-${item.id}`}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      <div className="p-6">
+        {isColecionador ? (
+          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} />
+        ) : (
+          <AcervoSimples artistas={artistas} obras={obras} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+const placeholderPages = [
+  "exposicoes", "agenda", "colecoes", "producao",
+  "localizacao", "contatos", "vendas", "documentos", "certificados", "configuracoes",
+];
+
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const [perfil, setPerfil] = useState<string>("artista");
   const [modalAberto, setModalAberto] = useState(false);
   const [filtro, setFiltro] = useState("todos");
+  const [paginaAtiva, setPaginaAtiva] = useState("obras");
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
@@ -434,10 +651,43 @@ export default function Dashboard() {
     "--sidebar-width-icon": "3rem",
   };
 
+  const tituloPagina = titulosPagina[paginaAtiva] || "Meu Acervo";
+  const mostrarBotaoNovaObra = paginaAtiva === "obras";
+
+  function renderConteudo() {
+    if (paginaAtiva === "obras") {
+      return (
+        <PaginaObras
+          perfil={perfil}
+          artistas={artistas}
+          obras={obras}
+          filtro={filtro}
+          setFiltro={setFiltro}
+        />
+      );
+    }
+    if (paginaAtiva === "bio") {
+      return <Bio />;
+    }
+    if (paginaAtiva === "mapa-obra") {
+      return <MapaObra />;
+    }
+    if (placeholderPages.includes(paginaAtiva)) {
+      return <Placeholder page={paginaAtiva} />;
+    }
+    return <Placeholder page={paginaAtiva} />;
+  }
+
   return (
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full bg-muted/30">
-        <AppSidebar onSair={handleSair} perfil={perfil} artistas={artistas} />
+        <AppSidebar
+          onSair={handleSair}
+          perfil={perfil}
+          artistas={artistas}
+          paginaAtiva={paginaAtiva}
+          onNavegar={setPaginaAtiva}
+        />
 
         <div className="flex flex-col flex-1 min-w-0">
           <header className="flex items-center justify-between gap-4 flex-wrap border-b bg-background px-6 py-4">
@@ -447,47 +697,26 @@ export default function Dashboard() {
                 className="text-2xl font-semibold text-foreground"
                 data-testid="text-dashboard-title"
               >
-                Meu Acervo
+                {tituloPagina}
               </h1>
               <Badge variant="secondary" data-testid="badge-perfil">
                 Perfil: {perfilLabels[perfil] || perfil}
               </Badge>
             </div>
 
-            <Button
-              onClick={() => setModalAberto(true)}
-              data-testid="button-nova-obra"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Obra
-            </Button>
+            {mostrarBotaoNovaObra && (
+              <Button
+                onClick={() => setModalAberto(true)}
+                data-testid="button-nova-obra"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Obra
+              </Button>
+            )}
           </header>
 
-          {isColecionador && (
-            <div className="flex items-center gap-2 px-6 pt-5 flex-wrap">
-              {[
-                { id: "todos", label: "Ver Todos" },
-                ...artistas.map((a) => ({ id: a.id, label: a.nome })),
-              ].map((item) => (
-                <Button
-                  key={item.id}
-                  variant={filtro === item.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFiltro(item.id)}
-                  data-testid={`button-filtro-${item.id}`}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </div>
-          )}
-
-          <main className="flex-1 overflow-y-auto p-6">
-            {isColecionador ? (
-              <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} />
-            ) : (
-              <AcervoSimples artistas={artistas} obras={obras} />
-            )}
+          <main className="flex-1 overflow-hidden flex flex-col">
+            {renderConteudo()}
           </main>
         </div>
       </div>
