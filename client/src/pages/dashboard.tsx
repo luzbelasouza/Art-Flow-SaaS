@@ -84,6 +84,7 @@ import Localizacao from "@/pages/localizacao";
 import Producao from "@/pages/producao";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
+import Certificado from "@/pages/certificado";
 
 const colecoesObras: Record<number, string> = {
   2: "Vida no Campo: A Série de Pontoise",
@@ -295,7 +296,7 @@ function AppSidebar({
   );
 }
 
-function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
+function ObraCard({ obra, artista, onCertificado }: { obra: Obra; artista?: Artista; onCertificado?: (obra: Obra) => void }) {
   const artistaLabel = artista ? `${artista.nome} (${artista.anos})` : "";
   const colecao = colecoesObras[obra.id];
 
@@ -346,6 +347,7 @@ function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
           </Button>
           <Button
             size="sm"
+            onClick={() => onCertificado?.(obra)}
             data-testid={`button-certificado-${obra.id}`}
           >
             <Award className="mr-1.5 h-3.5 w-3.5" />
@@ -357,6 +359,24 @@ function ObraCard({ obra, artista }: { obra: Obra; artista?: Artista }) {
   );
 }
 
+function gerarIdInventario() {
+  const num = Math.floor(100000 + Math.random() * 900000);
+  return `M${num}`;
+}
+
+const localizacoesDisponiveis = [
+  "Galeria Graphitte, São Paulo",
+  "Leblon, Rio de Janeiro",
+  "Jardins, São Paulo",
+  "Ateliê do Artista",
+  "Marina Bay, Singapura",
+  "Saatchi Gallery, Londres",
+];
+
+const colecoesDisponiveis = [
+  "Vida no Campo: A Série de Pontoise",
+];
+
 function NovaObraModal({
   open,
   onClose,
@@ -364,6 +384,7 @@ function NovaObraModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const [idInventario] = useState(gerarIdInventario);
   const [titulo, setTitulo] = useState("");
   const [tecnica, setTecnica] = useState("");
   const [ano, setAno] = useState("");
@@ -373,6 +394,8 @@ function NovaObraModal({
   const [localizacao, setLocalizacao] = useState("");
   const [medium, setMedium] = useState("");
   const [edicao, setEdicao] = useState("");
+  const [tiragem, setTiragem] = useState("");
+  const [colecao, setColecao] = useState("");
 
   function handleSalvar() {
     alert("Obra salva com sucesso!");
@@ -385,6 +408,8 @@ function NovaObraModal({
     setLocalizacao("");
     setMedium("");
     setEdicao("");
+    setTiragem("");
+    setColecao("");
     onClose();
   }
 
@@ -398,6 +423,13 @@ function NovaObraModal({
         </DialogHeader>
 
         <div className="space-y-5 py-2">
+          <div className="flex items-center gap-2 rounded-md bg-muted/50 px-4 py-2.5">
+            <span className="text-xs text-muted-foreground">ID de Inventário:</span>
+            <span className="font-mono text-sm font-semibold text-foreground" data-testid="text-id-inventario">
+              {idInventario}
+            </span>
+          </div>
+
           <div
             className="flex flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed border-border p-8 cursor-pointer"
             data-testid="area-upload-imagem"
@@ -454,10 +486,10 @@ function NovaObraModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="dimensoes">Tamanho</Label>
+              <Label htmlFor="dimensoes">Medidas</Label>
               <Input
                 id="dimensoes"
-                placeholder="Ex: 100x100 cm"
+                placeholder="Ex: 100x80 cm"
                 value={dimensoes}
                 onChange={(e) => setDimensoes(e.target.value)}
                 data-testid="input-dimensoes"
@@ -465,28 +497,15 @@ function NovaObraModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="preco">Preço (R$)</Label>
-              <Input
-                id="preco"
-                placeholder="Ex: 5.000,00"
-                value={preco}
-                onChange={(e) => setPreco(e.target.value)}
-                data-testid="input-preco"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="edicao">Edição / Tiragem</Label>
-              <Input
-                id="edicao"
-                placeholder="Ex: 1/50, Única"
-                value={edicao}
-                onChange={(e) => setEdicao(e.target.value)}
-                data-testid="input-edicao"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="preco">Preço (R$)</Label>
+            <Input
+              id="preco"
+              placeholder="Ex: 5.000,00"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+              data-testid="input-preco"
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -496,23 +515,68 @@ function NovaObraModal({
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="acervo">Acervo</SelectItem>
-                <SelectItem value="vendida">Vendida</SelectItem>
-                <SelectItem value="consignada">Consignada</SelectItem>
-                <SelectItem value="exposicao">Exposição</SelectItem>
+                <SelectItem value="estoque">Estoque</SelectItem>
+                <SelectItem value="vendido">Vendido</SelectItem>
+                <SelectItem value="consignacao">Consignação</SelectItem>
+                <SelectItem value="emprestado">Emprestado</SelectItem>
+                <SelectItem value="reservado">Reservado</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="localizacao">Localização</Label>
-            <Input
-              id="localizacao"
-              placeholder="Ex: Galeria Arte SP, São Paulo"
-              value={localizacao}
-              onChange={(e) => setLocalizacao(e.target.value)}
-              data-testid="input-localizacao"
-            />
+            <Label>Localização</Label>
+            <Select value={localizacao} onValueChange={setLocalizacao}>
+              <SelectTrigger data-testid="select-localizacao">
+                <SelectValue placeholder="Selecione a localização" />
+              </SelectTrigger>
+              <SelectContent>
+                {localizacoesDisponiveis.map((loc) => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Coleção</Label>
+            <Select value={colecao} onValueChange={setColecao}>
+              <SelectTrigger data-testid="select-colecao">
+                <SelectValue placeholder="Selecione a coleção (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nenhuma">Nenhuma</SelectItem>
+                {colecoesDisponiveis.map((col) => (
+                  <SelectItem key={col} value={col}>{col}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="edicao">Edição</Label>
+              <Input
+                id="edicao"
+                type="number"
+                placeholder="Ex: 1"
+                value={edicao}
+                onChange={(e) => setEdicao(e.target.value)}
+                data-testid="input-edicao"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="tiragem">Tiragem</Label>
+              <Input
+                id="tiragem"
+                type="number"
+                placeholder="Ex: 50"
+                value={tiragem}
+                onChange={(e) => setTiragem(e.target.value)}
+                data-testid="input-tiragem"
+              />
+            </div>
           </div>
         </div>
 
@@ -537,10 +601,12 @@ function ArtistaAcervo({
   artistas,
   obras,
   filtro,
+  onCertificado,
 }: {
   artistas: Artista[];
   obras: Obra[];
   filtro: string;
+  onCertificado: (obra: Obra) => void;
 }) {
   const artistasFiltrados = filtro === "todos"
     ? artistas
@@ -572,7 +638,7 @@ function ArtistaAcervo({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {obrasDoArtista.map((obra) => (
-                <ObraCard key={obra.id} obra={obra} artista={artista} />
+                <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} />
               ))}
             </div>
           </section>
@@ -585,15 +651,17 @@ function ArtistaAcervo({
 function AcervoSimples({
   artistas,
   obras,
+  onCertificado,
 }: {
   artistas: Artista[];
   obras: Obra[];
+  onCertificado: (obra: Obra) => void;
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {obras.map((obra) => {
         const artista = artistas.find((a) => a.id === obra.artistaId);
-        return <ObraCard key={obra.id} obra={obra} artista={artista} />;
+        return <ObraCard key={obra.id} obra={obra} artista={artista} onCertificado={onCertificado} />;
       })}
     </div>
   );
@@ -605,12 +673,14 @@ function PaginaObras({
   obras,
   filtro,
   setFiltro,
+  onCertificado,
 }: {
   perfil: string;
   artistas: Artista[];
   obras: Obra[];
   filtro: string;
   setFiltro: (f: string) => void;
+  onCertificado: (obra: Obra) => void;
 }) {
   const isColecionador = perfil === "colecionador";
 
@@ -637,9 +707,9 @@ function PaginaObras({
 
       <div className="p-6">
         {isColecionador ? (
-          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} />
+          <ArtistaAcervo artistas={artistas} obras={obras} filtro={filtro} onCertificado={onCertificado} />
         ) : (
-          <AcervoSimples artistas={artistas} obras={obras} />
+          <AcervoSimples artistas={artistas} obras={obras} onCertificado={onCertificado} />
         )}
       </div>
     </div>
@@ -657,6 +727,7 @@ export default function Dashboard() {
   const [modalAberto, setModalAberto] = useState(false);
   const [filtro, setFiltro] = useState("todos");
   const [paginaAtiva, setPaginaAtiva] = useState("obras");
+  const [obraCertificado, setObraCertificado] = useState<Obra | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("artflow_profile");
@@ -690,6 +761,7 @@ export default function Dashboard() {
             obras={obras}
             filtro={filtro}
             setFiltro={setFiltro}
+            onCertificado={setObraCertificado}
           />
         );
       case "bio":
@@ -764,6 +836,13 @@ export default function Dashboard() {
         open={modalAberto}
         onClose={() => setModalAberto(false)}
       />
+
+      {obraCertificado && (
+        <Certificado
+          obra={obraCertificado}
+          onClose={() => setObraCertificado(null)}
+        />
+      )}
     </SidebarProvider>
   );
 }
