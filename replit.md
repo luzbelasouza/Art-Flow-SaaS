@@ -8,6 +8,7 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - **Etapas 2-8 (Concluídas):** Landing page, Login/Cadastro, Dashboard com galeria de obras, suporte multi-perfil (Artista/Colecionador), filtros por artista.
 - **Etapa 9 (Concluída):** Reestruturação do perfil Artista com menu ERP Cultural, telas Bio, Mapa da Obra, e modal aprimorado.
 - **Etapa 10 (Concluída):** 7 novas telas funcionais – Exposições, Vendas, Agenda, Contatos, Localização, Produção, Mapa da Obra interativo com popups.
+- **Etapa 11 (Concluída):** Coleções/Séries com "Vida no Campo: A Série de Pontoise", Documentos estilo Drive com busca e 3 arquivos, selos de coleção nos cards de obras.
 
 ## Arquitetura
 - **Frontend:** React + Tailwind CSS + shadcn/ui (wouter para rotas)
@@ -52,9 +53,12 @@ Sistema web de gestão de acervo de arte. MVP em desenvolvimento por etapas.
 - `client/src/pages/contatos.tsx` - 3 contatos (João Vicente, Angela Marques, Galeria Graphitte)
 - `client/src/pages/localizacao.tsx` - 6 endereços (3 feiras + 3 vendas)
 - `client/src/pages/producao.tsx` - Obras em produção com progresso e cronômetros
+- `client/src/pages/colecoes.tsx` - Coleção "Vida no Campo" com 2 obras agrupadas
+- `client/src/pages/documentos.tsx` - Gestão de documentos estilo Drive com busca e categorias
 - `client/src/pages/placeholder.tsx` - Componente placeholder reutilizável
 
 ## Alterações Recentes
+- 2026-02-16: Etapa 11 - Coleções/Séries (Vida no Campo: Pontoise), Documentos (busca + categorias + 3 arquivos), selos de coleção nos cards de obras
 - 2026-02-16: Etapa 10 - Exposições, Vendas (R$135k, +15%), Agenda, Contatos, Localização, Produção com cronômetros, Mapa da Obra com popups
 - 2026-02-16: Etapa 9 - Menu ERP Cultural (5 grupos), Bio com avatar/textarea, Mapa da Obra com pins, modal Nova Obra expandido
 - 2026-02-16: Etapa 8 - Suporte multi-perfil Colecionador com agrupamento por artista e filtros
