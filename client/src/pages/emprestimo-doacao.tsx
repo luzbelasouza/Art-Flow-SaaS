@@ -39,11 +39,12 @@ interface LocalInfo {
   detalhe: string;
 }
 
-interface Registro {
+export interface Registro {
   id: string;
   obraId: number;
   obraTitulo: string;
   obraInventarioId: string;
+  obraImagem: string;
   tipo: "emprestimo" | "doacao";
   localDestino: string;
   data: string;
@@ -54,8 +55,8 @@ const tipoLabels: Record<string, string> = {
   doacao: "Doação",
 };
 
-export default function EmprestimoDoacaoPage({ obras, locais, onRegistroSalvo }: { obras: Obra[]; locais?: LocalInfo[]; onRegistroSalvo?: (obraId: number, localNome: string) => void }) {
-  const [registros, setRegistros] = useState<Registro[]>([]);
+export default function EmprestimoDoacaoPage({ obras, locais, onRegistroSalvo, registrosIniciais = [], onRegistrosChange }: { obras: Obra[]; locais?: LocalInfo[]; onRegistroSalvo?: (obraId: number, localNome: string) => void; registrosIniciais?: Registro[]; onRegistrosChange?: (registros: Registro[]) => void }) {
+  const [registros, setRegistros] = useState<Registro[]>(registrosIniciais);
   const [modalAberto, setModalAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const [obraSelecionada, setObraSelecionada] = useState<Obra | null>(null);
@@ -94,12 +95,15 @@ export default function EmprestimoDoacaoPage({ obras, locais, onRegistroSalvo }:
       obraId: obraSelecionada.id,
       obraTitulo: obraSelecionada.titulo,
       obraInventarioId: obraSelecionada.inventarioId,
+      obraImagem: obraSelecionada.imagem,
       tipo: tipo as Registro["tipo"],
       localDestino,
       data: new Date().toLocaleDateString("pt-BR"),
     };
-    setRegistros([...registros, novo]);
+    const novosRegistros = [...registros, novo];
+    setRegistros(novosRegistros);
     onRegistroSalvo?.(obraSelecionada.id, localDestino);
+    onRegistrosChange?.(novosRegistros);
     setBusca("");
     setObraSelecionada(null);
     setTipo("");

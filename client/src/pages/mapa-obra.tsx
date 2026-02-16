@@ -19,7 +19,28 @@ interface Pin {
   descricao: string;
 }
 
-const pins: Pin[] = [
+export interface RegistroMapa {
+  id: string;
+  obraId: number;
+  obraTitulo: string;
+  obraImagem: string;
+  tipo: "emprestimo" | "doacao";
+  localNome: string;
+  localEndereco: string;
+}
+
+const coordenadasLocais: Record<string, { top: string; left: string; cidade: string }> = {
+  "Museu do Ipiranga": { top: "55%", left: "55%", cidade: "São Paulo" },
+  "Instituto Cultural Itaú": { top: "54%", left: "53%", cidade: "São Paulo" },
+  "CONTEXT Art Miami": { top: "28%", left: "38%", cidade: "Miami" },
+  "Art Stage Singapore": { top: "52%", left: "88%", cidade: "Singapura" },
+  "START Art Fair": { top: "18%", left: "48%", cidade: "Londres" },
+  "Coleção João Vicente": { top: "58%", left: "62%", cidade: "Rio de Janeiro" },
+  "Escritório Angela Marques": { top: "56%", left: "54%", cidade: "São Paulo" },
+  "Galeria Graphitte": { top: "57%", left: "51%", cidade: "São Paulo" },
+};
+
+const pinsEstaticos: Pin[] = [
   {
     id: "rj",
     cidade: "Rio de Janeiro",
@@ -59,12 +80,40 @@ const legenda = [
   { label: "Vendida", cor: "bg-emerald-500" },
   { label: "Em Exposição", cor: "bg-rose-500" },
   { label: "Consignada", cor: "bg-amber-400" },
+  { label: "Empréstimo", cor: "bg-sky-400" },
+  { label: "Doação", cor: "bg-pink-400" },
 ];
 
-export default function MapaObra() {
+function registroToPin(reg: RegistroMapa): Pin {
+  const coords = coordenadasLocais[reg.localNome];
+  const isEmprestimo = reg.tipo === "emprestimo";
+
+  const baseTop = coords ? coords.top : "50%";
+  const baseLeft = coords ? coords.left : "50%";
+  const cidade = coords ? coords.cidade : reg.localNome;
+
+  return {
+    id: `reg-${reg.id}`,
+    cidade,
+    status: isEmprestimo ? "Empréstimo" : "Doação",
+    cor: isEmprestimo ? "bg-sky-400" : "bg-pink-400",
+    corBg: isEmprestimo ? "bg-sky-400/20" : "bg-pink-400/20",
+    top: baseTop,
+    left: baseLeft,
+    imagem: reg.obraImagem,
+    descricao: isEmprestimo
+      ? `Emprestada para: ${reg.localNome}`
+      : `Doada para: ${reg.localNome}`,
+  };
+}
+
+export default function MapaObra({ registros = [] }: { registros?: RegistroMapa[] }) {
   const [pinSelecionado, setPinSelecionado] = useState<string | null>(null);
 
-  const pinAtivo = pins.find((p) => p.id === pinSelecionado);
+  const pinsDinamicos = registros.map(registroToPin);
+  const todosOsPins = [...pinsEstaticos, ...pinsDinamicos];
+
+  const pinAtivo = todosOsPins.find((p) => p.id === pinSelecionado);
 
   return (
     <div className="flex-1 overflow-hidden relative" data-testid="mapa-container">
@@ -94,7 +143,7 @@ export default function MapaObra() {
             </text>
           </svg>
 
-          {pins.map((pin) => (
+          {todosOsPins.map((pin) => (
             <button
               key={pin.id}
               className="absolute flex flex-col items-center cursor-pointer"

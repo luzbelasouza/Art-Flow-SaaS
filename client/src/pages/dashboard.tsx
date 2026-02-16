@@ -97,14 +97,14 @@ import portraitImg from "@assets/7-portrait__1771200555858.png";
 
 import Placeholder from "@/pages/placeholder";
 import Bio from "@/pages/bio";
-import MapaObra from "@/pages/mapa-obra";
+import MapaObra, { type RegistroMapa } from "@/pages/mapa-obra";
 import Exposicoes, { exposicoesIniciais, type Exposicao } from "@/pages/exposicoes";
 import Vendas from "@/pages/vendas";
 import RepresentacaoPage, { representacoesIniciais, type Representacao } from "@/pages/representacao";
 import Contatos from "@/pages/contatos";
 import Localizacao, { locaisIniciais, type Local } from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
-import EmprestimoDoacaoPage from "@/pages/emprestimo-doacao";
+import EmprestimoDoacaoPage, { type Registro as RegistroEmprestimo } from "@/pages/emprestimo-doacao";
 import Colecoes from "@/pages/colecoes";
 import Documentos from "@/pages/documentos";
 import Certificado from "@/pages/certificado";
@@ -1634,7 +1634,35 @@ export default function Dashboard() {
   const [colecoesLista, setColecoesLista] = useState<string[]>([...colecoesDisponiveis]);
   const [localizacoesLista, setLocalizacoesLista] = useState<string[]>([...localizacoesDisponiveis]);
   const [locaisCompletos, setLocaisCompletos] = useState<Local[]>([...locaisIniciais]);
-  const [localizacaoObras, setLocalizacaoObras] = useState<Record<number, string>>({});
+  const [localizacaoObras, setLocalizacaoObras] = useState<Record<number, string>>(() => {
+    if (perfil === "colecionador") return { 12: "Museu do Ipiranga" } as Record<number, string>;
+    return {} as Record<number, string>;
+  });
+
+  const registrosInicialEmprestimo: RegistroEmprestimo[] = perfil === "colecionador" ? [
+    {
+      id: "reg-inicial-dresden",
+      obraId: 12,
+      obraTitulo: "View of Dresden",
+      obraInventarioId: "ID-M012",
+      obraImagem: vistaImg,
+      tipo: "emprestimo",
+      localDestino: "Museu do Ipiranga",
+      data: new Date().toLocaleDateString("pt-BR"),
+    },
+  ] : [];
+
+  const [registrosEmprestimo, setRegistrosEmprestimo] = useState<RegistroEmprestimo[]>(registrosInicialEmprestimo);
+
+  const registrosMapa: RegistroMapa[] = registrosEmprestimo.map((r) => ({
+    id: r.id,
+    obraId: r.obraId,
+    obraTitulo: r.obraTitulo,
+    obraImagem: r.obraImagem,
+    tipo: r.tipo,
+    localNome: r.localDestino,
+    localEndereco: "",
+  }));
   const [tiragensLista, setTiragensLista] = useState<Tiragem[]>([...tiragensIniciais]);
   const [exposicoesLista, setExposicoesLista] = useState<string[]>(exposicoesIniciais.map((e) => e.nome));
   const [representacoesLista, setRepresentacoesLista] = useState<string[]>(representacoesIniciais.map((r) => r.nome));
@@ -1659,6 +1687,25 @@ export default function Dashboard() {
     const saved = localStorage.getItem("artflow_profile");
     if (saved) setPerfil(saved);
   }, []);
+
+  useEffect(() => {
+    if (perfil === "colecionador") {
+      setRegistrosEmprestimo([{
+        id: "reg-inicial-dresden",
+        obraId: 12,
+        obraTitulo: "View of Dresden",
+        obraInventarioId: "ID-M012",
+        obraImagem: vistaImg,
+        tipo: "emprestimo",
+        localDestino: "Museu do Ipiranga",
+        data: new Date().toLocaleDateString("pt-BR"),
+      }]);
+      setLocalizacaoObras({ 12: "Museu do Ipiranga" } as Record<number, string>);
+    } else {
+      setRegistrosEmprestimo([]);
+      setLocalizacaoObras({} as Record<number, string>);
+    }
+  }, [perfil]);
 
   const isColecionador = perfil === "colecionador";
   const artistas = isColecionador ? artistasColecionador : artistasPissarro;
@@ -1748,7 +1795,7 @@ export default function Dashboard() {
       case "bio":
         return <Bio />;
       case "mapa-obra":
-        return <MapaObra />;
+        return <MapaObra registros={registrosMapa} />;
       case "exposicoes":
         return <Exposicoes onNovaExposicao={(nome) => setExposicoesLista((prev) => [...prev, nome])} perfil={perfil} />;
       case "vendas":
@@ -1767,10 +1814,10 @@ export default function Dashboard() {
       case "producao":
         return <Producao onNovaTiragem={(tir) => setTiragensLista((prev) => [...prev, tir])} />;
       case "emprestimo-doacao":
-        return <EmprestimoDoacaoPage obras={obras} locais={locaisCompletos} onRegistroSalvo={(obraId: number, localNome: string) => {
+        return <EmprestimoDoacaoPage obras={obras} locais={locaisCompletos} registrosIniciais={registrosInicialEmprestimo} onRegistroSalvo={(obraId: number, localNome: string) => {
           setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
           toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
-        }} />;
+        }} onRegistrosChange={(novos) => setRegistrosEmprestimo(novos)} />;
       case "colecoes":
         return <Colecoes onNovaColecao={(nome) => setColecoesLista((prev) => [...prev, nome])} />;
       case "documentos":
