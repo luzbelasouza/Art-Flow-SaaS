@@ -31,6 +31,7 @@ import {
   AlertCircle,
   Lock,
   Eye,
+  Plus,
 } from "lucide-react";
 
 interface Obra {
@@ -395,7 +396,21 @@ const galerias = [
   },
 ];
 
-export function ConsignacaoPage({ catalogos }: { catalogos: CatalogoItemLeilao[] }) {
+export type RegistroConsignacao = {
+  obraId: number;
+  obraNome: string;
+  localDestino: string;
+  data: string;
+};
+
+export function ConsignacaoPage({ catalogos, obras, locais, registrosIniciais, onRegistroSalvo, onRegistrosChange }: {
+  catalogos: CatalogoItemLeilao[];
+  obras?: { id: number; titulo: string; imagem: string }[];
+  locais?: { id: number; nome: string; tipo?: string }[];
+  registrosIniciais?: RegistroConsignacao[];
+  onRegistroSalvo?: (obraId: number, localNome: string) => void;
+  onRegistrosChange?: (registros: RegistroConsignacao[]) => void;
+}) {
   const [galeriasSelecionadas, setGaleriasSelecionadas] = useState<Set<number>>(new Set());
   const [modalCatalogoAberto, setModalCatalogoAberto] = useState(false);
   const [catalogoSelecionado, setCatalogoSelecionado] = useState<CatalogoItemLeilao | null>(null);
@@ -404,6 +419,54 @@ export function ConsignacaoPage({ catalogos }: { catalogos: CatalogoItemLeilao[]
   const [catalogoEnviado, setCatalogoEnviado] = useState<string | null>(null);
   const [qtdGaleriasEnviadas, setQtdGaleriasEnviadas] = useState(0);
   const { toast } = useToast();
+
+  const [modalNovaAberto, setModalNovaAberto] = useState(false);
+  const [buscaObra, setBuscaObra] = useState("");
+  const [obraSelecionada, setObraSelecionada] = useState<number | null>(null);
+  const [localSelecionado, setLocalSelecionado] = useState("");
+  const [registros, setRegistros] = useState<RegistroConsignacao[]>(registrosIniciais ?? []);
+
+  const obrasDisponiveis = obras ?? [];
+  const locaisConsignacao = (locais ?? []).filter((l) => l.tipo === "consignacao" || l.tipo === "galeria");
+  const obrasFiltradas = buscaObra.trim()
+    ? obrasDisponiveis.filter((o) => o.titulo.toLowerCase().includes(buscaObra.toLowerCase()))
+    : obrasDisponiveis;
+
+  function handleSalvarConsignacao() {
+    if (obraSelecionada == null || !localSelecionado) return;
+    const obra = obrasDisponiveis.find((o) => o.id === obraSelecionada);
+    if (!obra) return;
+    const novo: RegistroConsignacao = {
+      obraId: obra.id,
+      obraNome: obra.titulo,
+      localDestino: localSelecionado,
+      data: new Date().toLocaleDateString("pt-BR"),
+    };
+    const novos = [...registros, novo];
+    setRegistros(novos);
+    onRegistrosChange?.(novos);
+    onRegistroSalvo?.(obra.id, localSelecionado);
+
+    salvarEnvio({
+      id: `envio-consignacao-logistica-${Date.now()}`,
+      tipo: "Consignação",
+      destinatarios: [localSelecionado],
+      catalogo: obra.titulo,
+      catalogoId: `obra-${obra.id}`,
+      data: new Date().toLocaleDateString("pt-BR"),
+      hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      qtd: 1,
+    });
+
+    setModalNovaAberto(false);
+    setBuscaObra("");
+    setObraSelecionada(null);
+    setLocalSelecionado("");
+    toast({
+      title: "Consignação registrada",
+      description: `"${obra.titulo}" consignada em "${localSelecionado}".`,
+    });
+  }
 
   function toggleGaleria(id: number) {
     setGaleriasSelecionadas((prev) => {
@@ -460,9 +523,43 @@ export function ConsignacaoPage({ catalogos }: { catalogos: CatalogoItemLeilao[]
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-6">
-        <p className="text-sm text-muted-foreground" data-testid="text-consignacao-desc">
-          Diretório de galerias que aceitam acervo consignado. Selecione as galerias e envie seu catálogo.
-        </p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <p className="text-sm text-muted-foreground" data-testid="text-consignacao-desc">
+            Gerencie consignações e envie catálogos para galerias parceiras.
+          </p>
+          <Button size="sm" onClick={() => setModalNovaAberto(true)} data-testid="button-nova-consignacao">
+            <Plus className="mr-1.5 h-3.5 w-3.5" />
+            Nova Consignação
+          </Button>
+        </div>
+
+        {registros.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground">Consignações Registradas</h3>
+            <div className="space-y-2">
+              {registros.map((r, idx) => (
+                <Card key={idx} className="p-4" data-testid={`card-registro-consignacao-${idx}`}>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="space-y-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{r.obraNome}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        {r.localDestino}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge variant="secondary" className="text-[10px]" style={{ backgroundColor: "rgba(245, 158, 11, 0.1)", color: "#d97706", borderColor: "rgba(245, 158, 11, 0.3)" }}>
+                        Consignada
+                      </Badge>
+                      <span className="text-[10px] text-muted-foreground">{r.data}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+            <Separator />
+          </div>
+        )}
 
         {enviado && catalogoEnviado && (
           <div className="rounded-md p-3 flex items-center gap-2" style={{ backgroundColor: "rgba(34, 197, 94, 0.08)", border: "1px solid rgba(34, 197, 94, 0.2)" }} data-testid="alert-consignacao-enviada">
@@ -634,6 +731,85 @@ export function ConsignacaoPage({ catalogos }: { catalogos: CatalogoItemLeilao[]
           </Card>
         </div>
       )}
+
+      {modalNovaAberto && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" data-testid="modal-nova-consignacao">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-5">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-foreground">Nova Consignação</h2>
+              <p className="text-xs text-muted-foreground">Selecione a obra e o local de destino para consignação.</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Buscar Obra *</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Digite o nome da obra..."
+                  value={buscaObra}
+                  onChange={(e) => setBuscaObra(e.target.value)}
+                  className="pl-8"
+                  data-testid="input-busca-obra-consignacao"
+                />
+              </div>
+              {buscaObra.trim() && (
+                <div className="max-h-40 overflow-y-auto space-y-1 border border-border rounded-md p-2">
+                  {obrasFiltradas.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-2">Nenhuma obra encontrada</p>
+                  ) : (
+                    obrasFiltradas.map((o) => (
+                      <div
+                        key={o.id}
+                        className={`flex items-center gap-2 p-2 rounded-md cursor-pointer ${obraSelecionada === o.id ? "ring-1 ring-primary bg-muted/50" : "hover-elevate"}`}
+                        onClick={() => { setObraSelecionada(o.id); setBuscaObra(o.titulo); }}
+                        data-testid={`opcao-obra-consignacao-${o.id}`}
+                      >
+                        <img src={o.imagem} alt={o.titulo} className="h-10 w-10 object-cover rounded-sm flex-shrink-0" />
+                        <span className="text-sm text-foreground">{o.titulo}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Local de Destino *</Label>
+              {locaisConsignacao.length === 0 ? (
+                <div className="rounded-md p-3" style={{ backgroundColor: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                  <p className="text-xs text-muted-foreground">Nenhum local do tipo "consignação" ou "galeria" cadastrado. Adicione em Localização.</p>
+                </div>
+              ) : (
+                <select
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={localSelecionado}
+                  onChange={(e) => setLocalSelecionado(e.target.value)}
+                  data-testid="select-local-consignacao"
+                >
+                  <option value="">Selecione o local...</option>
+                  {locaisConsignacao.map((l) => (
+                    <option key={l.id} value={l.nome}>{l.nome}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => { setModalNovaAberto(false); setBuscaObra(""); setObraSelecionada(null); setLocalSelecionado(""); }} data-testid="button-cancelar-nova-consignacao">
+                Cancelar
+              </Button>
+              <Button
+                disabled={obraSelecionada == null || !localSelecionado}
+                onClick={handleSalvarConsignacao}
+                data-testid="button-salvar-consignacao"
+              >
+                <Check className="mr-1.5 h-4 w-4" />
+                Registrar Consignação
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
@@ -732,14 +908,39 @@ function limparAvaliacao() {
   localStorage.removeItem("artflow_avaliacao_pendente");
 }
 
-export function AvaliacaoPage() {
+function carregarConsultasUsadas(perfil: string): number {
+  try {
+    const mes = new Date().toISOString().slice(0, 7);
+    const raw = localStorage.getItem(`artflow_consultas_${perfil}_${mes}`);
+    if (raw) return parseInt(raw, 10);
+  } catch {}
+  return 0;
+}
+
+function salvarConsultasUsadas(perfil: string, n: number) {
+  const mes = new Date().toISOString().slice(0, 7);
+  localStorage.setItem(`artflow_consultas_${perfil}_${mes}`, String(n));
+}
+
+const COTAS_MENSAIS: Record<string, number> = {
+  artista: 5,
+  colecionador: 10,
+  galeria: 20,
+};
+
+export function AvaliacaoPage({ perfil = "colecionador" }: { perfil?: string }) {
   const [nomeArtista, setNomeArtista] = useState("");
   const [nomeObra, setNomeObra] = useState("");
   const [pendente, setPendente] = useState(carregarAvaliacao);
   const [enviada, setEnviada] = useState(false);
+  const [consultasUsadas, setConsultasUsadas] = useState(() => carregarConsultasUsadas(perfil));
+
+  const cotaTotal = COTAS_MENSAIS[perfil] ?? 10;
+  const consultasRestantes = Math.max(0, cotaTotal - consultasUsadas);
+  const cotaEsgotada = consultasRestantes <= 0;
 
   function handleSolicitar() {
-    if (!nomeArtista.trim()) return;
+    if (!nomeArtista.trim() || cotaEsgotada) return;
     const nova = {
       artista: nomeArtista.trim(),
       obra: nomeObra.trim() || "(não especificada)",
@@ -749,6 +950,9 @@ export function AvaliacaoPage() {
     salvarAvaliacao(nova);
     setPendente(nova);
     setEnviada(true);
+    const novasConsultas = consultasUsadas + 1;
+    setConsultasUsadas(novasConsultas);
+    salvarConsultasUsadas(perfil, novasConsultas);
     setNomeArtista("");
     setNomeObra("");
   }
@@ -762,9 +966,27 @@ export function AvaliacaoPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        <p className="text-sm text-muted-foreground" data-testid="text-avaliacao-desc">
-          Solicite uma avaliação de mercado para obras de arte. Nossa equipe de especialistas analisará leilões recentes e enviará o resultado na Caixa de Entrada.
-        </p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <p className="text-sm text-muted-foreground" data-testid="text-avaliacao-desc">
+            Solicite uma avaliação de mercado para obras de arte.
+          </p>
+          <div className="flex items-center gap-2 rounded-md px-3 py-1.5" style={{ backgroundColor: consultasRestantes <= 2 ? "rgba(239, 68, 68, 0.06)" : "rgba(212, 168, 67, 0.08)", border: `1px solid ${consultasRestantes <= 2 ? "rgba(239, 68, 68, 0.2)" : "rgba(212, 168, 67, 0.2)"}` }} data-testid="contador-consultas">
+            <ShoppingBag className="h-3.5 w-3.5" style={{ color: consultasRestantes <= 2 ? "#ef4444" : "#D4A843" }} />
+            <span className="text-xs font-medium" style={{ color: consultasRestantes <= 2 ? "#ef4444" : "#D4A843" }} data-testid="text-consultas-restantes">
+              {consultasRestantes} / {cotaTotal} consultas restantes
+            </span>
+          </div>
+        </div>
+
+        {cotaEsgotada && !pendente && (
+          <div className="rounded-md p-4 flex items-start gap-2" style={{ backgroundColor: "rgba(239, 68, 68, 0.06)", border: "1px solid rgba(239, 68, 68, 0.2)" }} data-testid="alerta-cota-esgotada">
+            <Lock className="h-4 w-4 flex-shrink-0 mt-0.5 text-red-500" />
+            <div>
+              <p className="text-xs font-medium text-red-600">Cota mensal esgotada</p>
+              <p className="text-xs text-red-500 mt-0.5">Você atingiu o limite de {cotaTotal} consultas este mês. A cota será renovada no próximo mês.</p>
+            </div>
+          </div>
+        )}
 
         {pendente ? (
           <div className="space-y-4">
@@ -791,7 +1013,7 @@ export function AvaliacaoPage() {
 
               <div className="rounded-md p-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
                 <p className="text-xs text-muted-foreground" data-testid="text-avaliacao-mensagem">
-                  Sua avaliação chegará em 24h na Caixa de Entrada por nossa equipe de especialistas.
+                  Seu relatório será enviado em 24h na Caixa de Entrada.
                 </p>
               </div>
 
@@ -866,10 +1088,10 @@ export function AvaliacaoPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="nome-obra-avaliacao">Nome da Obra (opcional)</Label>
+              <Label htmlFor="nome-obra-avaliacao">ID ou Nome da Obra (opcional)</Label>
               <Input
                 id="nome-obra-avaliacao"
-                placeholder="Ex: Colheita das Maçãs"
+                placeholder="Ex: Colheita das Maçãs ou ID-M001"
                 value={nomeObra}
                 onChange={(e) => setNomeObra(e.target.value)}
                 data-testid="input-obra-avaliacao"
@@ -878,13 +1100,13 @@ export function AvaliacaoPage() {
 
             <div className="rounded-md p-3" style={{ backgroundColor: "rgba(212, 168, 67, 0.06)", border: "1px solid rgba(212, 168, 67, 0.2)" }}>
               <p className="text-xs text-muted-foreground">
-                Sua avaliação chegará em 24h na Caixa de Entrada por nossa equipe de especialistas.
+                Seu relatório será enviado em 24h na Caixa de Entrada.
               </p>
             </div>
 
             <Button
               onClick={handleSolicitar}
-              disabled={!nomeArtista.trim()}
+              disabled={!nomeArtista.trim() || cotaEsgotada}
               data-testid="button-solicitar-avaliacao"
             >
               <Send className="mr-2 h-4 w-4" />

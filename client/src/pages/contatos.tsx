@@ -64,13 +64,21 @@ function getIniciais(nome: string) {
   return nome.slice(0, 2).toUpperCase();
 }
 
-export default function Contatos() {
-  const [contatos, setContatos] = useState<Contato[]>(contatosIniciais);
+export { contatosIniciais };
+export type { Contato };
+
+export default function Contatos({ contatosExternos, onContatosChange }: { contatosExternos?: Contato[]; onContatosChange?: (contatos: Contato[]) => void } = {}) {
+  const [contatos, setContatosLocal] = useState<Contato[]>(contatosExternos ?? contatosIniciais);
   const [modalAberto, setModalAberto] = useState(false);
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+
+  function setContatos(novos: Contato[]) {
+    setContatosLocal(novos);
+    onContatosChange?.(novos);
+  }
 
   function handleSalvar() {
     if (!nome.trim()) return;

@@ -109,7 +109,7 @@ import Exposicoes, { exposicoesIniciais, type Exposicao } from "@/pages/exposico
 import Vendas from "@/pages/vendas";
 import RepresentacaoPage, { representacoesIniciais, type Representacao, type RegistroRepresentacao } from "@/pages/representacao";
 import ArmazenamentoPage, { type RegistroArmazenamento } from "@/pages/armazenamento";
-import Contatos from "@/pages/contatos";
+import Contatos, { contatosIniciais, type Contato } from "@/pages/contatos";
 import Localizacao, { locaisIniciais, type Local } from "@/pages/localizacao";
 import Producao, { tiragensIniciais, type Tiragem } from "@/pages/producao";
 import EmprestimoDoacaoPage, { type Registro as RegistroEmprestimo } from "@/pages/emprestimo-doacao";
@@ -125,6 +125,7 @@ import {
   OcupacaoPage,
   EditalPage,
   ConsignacaoPage,
+  type RegistroConsignacao,
   FeirasPage,
   AvaliacaoPage,
   LeiloesPage,
@@ -1719,6 +1720,21 @@ export default function Dashboard() {
       localEndereco: "",
     })),
   ];
+  const [contatosLista, setContatosLista] = useState<Contato[]>([...contatosIniciais]);
+  const [registrosConsignacao, setRegistrosConsignacao] = useState<RegistroConsignacao[]>([]);
+
+  const registrosMapaFinal: RegistroMapa[] = [
+    ...registrosMapa,
+    ...registrosConsignacao.map((r, idx) => ({
+      id: `consignacao-${idx}`,
+      obraId: r.obraId,
+      obraTitulo: r.obraNome,
+      obraImagem: obras.find((o) => o.id === r.obraId)?.imagem ?? "",
+      tipo: "consignacao" as RegistroMapa["tipo"],
+      localNome: r.localDestino,
+      localEndereco: "",
+    })),
+  ];
   const [tiragensLista, setTiragensLista] = useState<Tiragem[]>([...tiragensIniciais]);
   const [exposicoesLista, setExposicoesLista] = useState<string[]>(exposicoesIniciais.map((e) => e.nome));
   const [representacoesLista, setRepresentacoesLista] = useState<string[]>(representacoesIniciais.map((r) => r.nome));
@@ -1852,18 +1868,18 @@ export default function Dashboard() {
       case "bio":
         return <Bio />;
       case "mapa-obra":
-        return <MapaObra registros={registrosMapa} />;
+        return <MapaObra registros={registrosMapaFinal} />;
       case "exposicoes":
         return <Exposicoes onNovaExposicao={(nome) => setExposicoesLista((prev) => [...prev, nome])} perfil={perfil} />;
       case "vendas":
-        return <Vendas />;
+        return <Vendas contatos={contatosLista} obras={obras} />;
       case "representacao":
         return <RepresentacaoPage obras={obras} locais={locaisCompletos} registrosIniciais={registrosRepresentacao} onRegistroSalvo={(obraId: number, localNome: string) => {
           setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
           toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
         }} onRegistrosChange={(novos) => setRegistrosRepresentacao(novos)} />;
       case "contatos":
-        return <Contatos />;
+        return <Contatos contatosExternos={contatosLista} onContatosChange={setContatosLista} />;
       case "localizacao":
         return <Localizacao onNovaLocalizacao={(nome, tipo) => {
           setLocalizacoesLista((prev) => [...prev, nome]);
@@ -1902,9 +1918,12 @@ export default function Dashboard() {
           />
         );
       case "oport-consignacao":
-        return <ConsignacaoPage catalogos={catalogos} />;
+        return <ConsignacaoPage catalogos={catalogos} obras={obras} locais={locaisCompletos} registrosIniciais={registrosConsignacao} onRegistroSalvo={(obraId, localNome) => {
+          setLocalizacaoObras((prev) => ({ ...prev, [obraId]: localNome }));
+          toast({ title: "Localização atualizada", description: `A obra foi movida para "${localNome}".` });
+        }} onRegistrosChange={setRegistrosConsignacao} />;
       case "oport-avaliacao":
-        return <AvaliacaoPage />;
+        return <AvaliacaoPage perfil={perfil} />;
       case "oport-caixa":
         return <CaixaEntradaPage onVisualizarCatalogo={(catalogoId) => {
           const cat = catalogos.find(c => c.id === catalogoId);
