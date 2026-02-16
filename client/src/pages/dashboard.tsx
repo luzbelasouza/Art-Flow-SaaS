@@ -227,7 +227,7 @@ const menuBase: MenuGroup[] = [
     items: [
       { id: "perfil-emissor", title: "Perfil", icon: UserCog },
       { id: "bio", title: "Bio", icon: User },
-      { id: "mapa-obra", title: "Mapa da Obra", icon: Map },
+      { id: "mapa-obra", title: "Mapa da Obra", icon: Map, premium: true },
     ],
   },
   {
@@ -238,25 +238,26 @@ const menuBase: MenuGroup[] = [
       { id: "colecoes", title: "Coleções / Séries", icon: Layers },
       { id: "catalogos-repo", title: "Catálogo", icon: BookOpen },
       { id: "exposicoes", title: "Exposições", icon: Calendar },
-      { id: "representacao", title: "Representação", icon: Building2 },
-      { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart },
-      { id: "leiloes-acervo", title: "Leilões Públicos", icon: Gavel },
+      { id: "representacao", title: "Representação", icon: Building2, premium: true },
+      { id: "emprestimo-doacao", title: "Empréstimo / Doação", icon: HandHeart, premium: true },
+      { id: "leiloes-acervo", title: "Leilões Públicos", icon: Gavel, premium: true },
     ],
   },
   {
     label: "Logística",
     items: [
       { id: "localizacao", title: "Localização", icon: Navigation },
-      { id: "armazenamento", title: "Armazenamento", icon: Archive },
+      { id: "armazenamento", title: "Armazenamento", icon: Archive, premium: true },
       { id: "contatos", title: "Contatos", icon: Users },
     ],
   },
   {
     label: "Comercial",
+    premiumGroup: true,
     items: [
-      { id: "vendas", title: "Vendas", icon: BarChart3 },
-      { id: "oport-consignacao", title: "Consignação", icon: Tag },
-      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag },
+      { id: "vendas", title: "Vendas", icon: BarChart3, premium: true },
+      { id: "oport-consignacao", title: "Consignação", icon: Tag, premium: true },
+      { id: "oport-avaliacao", title: "Avaliação", icon: ShoppingBag, premium: true },
     ],
   },
   {
@@ -280,26 +281,31 @@ const menuBase: MenuGroup[] = [
     label: "Suporte",
     items: [
       { id: "oport-caixa", title: "Caixa de Entrada", icon: MessageSquare },
-      { id: "tutores-online", title: "Tutores Online", icon: Video },
-      { id: "cursos", title: "Cursos", icon: GraduationCap },
+      { id: "tutores-online", title: "Tutores Online", icon: Video, premium: true },
+      { id: "cursos", title: "Cursos", icon: GraduationCap, premium: true },
       { id: "suporte", title: "Suporte", icon: HelpCircle },
     ],
   },
 ];
 
+const artistaOnly = new Set(["representacao", "convocatoria", "venda-arte", "tutores-online", "cursos"]);
+const colecionadorOnly = new Set(["emprestimo-doacao"]);
+const colecionadorGaleriaOnly = new Set(["artistas", "leiloes-acervo", "oport-avaliacao", "seja-tutor", "leilao-artflow"]);
+const hideForGaleria = new Set(["oport-consignacao"]);
+
 function buildMenu(perfil: string): MenuGroup[] {
-  const base = menuBase.map((grupo) => ({ ...grupo, items: [...grupo.items] }));
-
-  if (perfil === "artista") {
-    const acervoIdx = base.findIndex((g) => g.label === "Acervo");
-    if (acervoIdx !== -1) {
-      base[acervoIdx].items = base[acervoIdx].items.filter(
-        (i) => i.id !== "artistas" && i.id !== "emprestimo-doacao" && i.id !== "leiloes-acervo"
-      );
-    }
-  }
-
-  return base;
+  return menuBase
+    .map((grupo) => ({
+      ...grupo,
+      items: grupo.items.filter((item) => {
+        if (artistaOnly.has(item.id) && perfil !== "artista") return false;
+        if (colecionadorOnly.has(item.id) && perfil !== "colecionador") return false;
+        if (colecionadorGaleriaOnly.has(item.id) && perfil !== "colecionador" && perfil !== "galeria") return false;
+        if (hideForGaleria.has(item.id) && perfil === "galeria") return false;
+        return true;
+      }),
+    }))
+    .filter((grupo) => grupo.items.length > 0);
 }
 
 const titulosPagina: Record<string, string> = {
@@ -426,15 +432,13 @@ function AppSidebar({
 
   const sidebarUser = perfil === "colecionador"
     ? { nome: "Minha Coleção", iniciais: "MC", foto: "" }
+    : perfil === "galeria"
+    ? { nome: "Minha Galeria", iniciais: "MG", foto: "" }
     : { nome: artistas[0]?.nome || "Usuário", iniciais: artistas[0]?.iniciais || "U", foto: artistas[0]?.foto || "" };
 
-  function handleNavegar(item: MenuItem, isOportunidadesGroup: boolean) {
-    if (item.premium && !premium) {
-      if (isOportunidadesGroup) {
-        onNavegar(item.id);
-      } else {
-        onUpsell();
-      }
+  function handleNavegar(item: MenuItem, isPremiumGroup: boolean) {
+    if ((item.premium || isPremiumGroup) && !premium) {
+      onUpsell();
     } else {
       onNavegar(item.id);
     }
@@ -474,11 +478,12 @@ function AppSidebar({
                       <item.icon className="h-4 w-4" />
                       <span className="flex-1">{item.title}</span>
                       {item.premium && !premium && !grupo.premiumGroup && (
-                        <span className="flex items-center gap-1 ml-auto" data-testid={`badge-premium-${item.id}`}>
-                          <Lock className="h-3 w-3" style={{ color: "#D4A843" }} />
-                          <span className="text-[9px] font-semibold tracking-wider" style={{ color: "#D4A843" }}>
-                            PREMIUM
-                          </span>
+                        <span
+                          className="text-[10px] font-bold ml-auto"
+                          style={{ color: "#D4A843" }}
+                          data-testid={`badge-premium-${item.id}`}
+                        >
+                          P
                         </span>
                       )}
                     </SidebarMenuButton>
